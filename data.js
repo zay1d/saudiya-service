@@ -4,12 +4,14 @@ const CONTACT_URL = "https://t.me/";
 const CONTACT_LABEL = "Biz bilan bog‘laning";
 
 // ===== Categories (home list + bottom tab bar) =====
+// `homeIcon` is the large symbol shown on the home menu rows.
+// `icon` is the smaller icon used inside the bottom tab bar.
 const CATEGORIES = [
-  { id: "umra",     numeral: "I.",   title: "Umra paketlari",       short: "Paket",     icon: "n-pkg",      subtitle: "VIP · Comfort · Standart · Ekonom" },
-  { id: "visa",     numeral: "II.",  title: "Vizalar",              short: "Viza",      icon: "n-visa",     subtitle: "Umra · Turistik · Biznes" },
-  { id: "hotels",   numeral: "III.", title: "Mexmonxonalar",        short: "Otel",      icon: "n-hotel",    subtitle: "Makka va Madina · Haram yaqinida" },
-  { id: "transfer", numeral: "IV.",  title: "Transferlar",          short: "Transfer",  icon: "n-transfer", subtitle: "Aeroport · Makka · Madina" },
-  { id: "contact",  numeral: "V.",   title: "Biz bilan bog‘laning", short: "Aloqa",     icon: "n-chat",     subtitle: "Maslahatchi bilan suhbat · 24/7" },
+  { id: "umra",     homeIcon: "h-kaaba",     icon: "n-pkg",      title: "Umra paketlari",       short: "Paket",    subtitle: "VIP · Comfort · Standart · Ekonom" },
+  { id: "visa",     homeIcon: "h-passport",  icon: "n-visa",     title: "Vizalar",              short: "Viza",     subtitle: "Umra · Turistik · Biznes" },
+  { id: "hotels",   homeIcon: "h-hotel",     icon: "n-hotel",    title: "Mexmonxonalar",        short: "Otel",     subtitle: "Makka va Madina · Haram yaqinida" },
+  { id: "transfer", homeIcon: "h-transport", icon: "n-transfer", title: "Transferlar",          short: "Transfer", subtitle: "Aeroport · Makka · Madina" },
+  { id: "contact",  homeIcon: "h-chat",      icon: "n-chat",     title: "Biz bilan bog‘laning", short: "Aloqa",    subtitle: "Maslahatchi bilan suhbat · 24/7" },
 ];
 
 // ===== Umra packages =====

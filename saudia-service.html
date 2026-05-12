@@ -215,12 +215,14 @@ body {
   background: linear-gradient(180deg, transparent, rgba(214,184,123,0.06));
 }
 .menu .num {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 19px;
+  display: grid;
+  place-items: center;
   color: var(--gold);
-  line-height: 1;
+}
+.menu .num svg {
+  width: 26px;
+  height: 26px;
+  display: block;
 }
 .menu .label .t {
   font-family: var(--serif);
@@ -414,33 +416,48 @@ body {
 
 /* ============ PACKAGE LIST ============ */
 
-.pkg-list { padding: 8px 28px 0; }
+.pkg-list {
+  padding: 16px 22px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 .pkg-row {
   position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 8px 18px;
-  padding: 26px 4px 26px 16px;
-  border-bottom: 1px solid var(--line-12);
+  padding: 22px 22px;
+  border: 1px solid var(--line-20);
+  border-radius: 14px;
+  background: rgba(56, 40, 24, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   cursor: pointer;
-  background: transparent;
-  border-left: none;
-  border-right: none;
-  border-top: none;
   text-align: left;
   color: inherit;
   font-family: inherit;
   width: 100%;
+  transition: background .25s ease, border-color .25s ease;
+}
+.pkg-row:active {
+  background: rgba(67, 50, 31, 0.65);
+  border-color: var(--line-30);
+}
+.pkg-row.vip {
+  border-color: var(--line-30);
+  background: rgba(67, 50, 31, 0.50);
 }
 .pkg-row.vip::before {
   content: "";
   position: absolute;
-  left: 0;
-  top: 32px;
-  width: 1px;
+  left: -1px;
+  top: 24px;
+  width: 2px;
   height: 32px;
   background: var(--gold);
   opacity: 0.85;
+  border-radius: 1px;
 }
 .pkg-row .tier {
   font-family: var(--sans);
@@ -486,16 +503,6 @@ body {
   color: var(--muted);
   font-weight: 400;
   margin-bottom: 8px;
-}
-.pkg-row .ask {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 14px;
-  color: var(--cream-dim);
-  line-height: 1.2;
-  white-space: nowrap;
-  letter-spacing: 0.01em;
 }
 .pkg-row .more {
   grid-column: 1 / -1;
@@ -595,44 +602,18 @@ body {
   letter-spacing: 0.02em;
 }
 
-.ask-block {
-  padding: 26px 28px 4px;
-  border-bottom: 1px solid var(--line-12);
-  text-align: center;
-}
-.ask-block .lbl {
-  font-family: var(--sans);
-  font-size: 9.5px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 400;
-}
-.ask-block .v {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 22px;
-  color: var(--cream);
-  line-height: 1.2;
-  margin-top: 10px;
-}
-
-.cta-wrap { padding: 24px 28px 28px; }
+.cta-wrap { padding: 28px 28px 32px; }
 .cta {
   width: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 18px 18px;
+  gap: 6px;
+  padding: 16px 18px 18px;
   background: transparent;
   color: var(--gold);
   font-family: var(--sans);
-  font-size: 11px;
-  letter-spacing: 0.36em;
-  text-transform: uppercase;
-  font-weight: 500;
   border: 1px solid var(--gold);
   border-radius: 1px;
   cursor: pointer;
@@ -642,6 +623,32 @@ body {
 .cta:active {
   background: rgba(214,184,123,0.07);
   color: var(--gold-light);
+}
+.cta .cta-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--muted);
+}
+.cta .cta-main {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  color: var(--gold);
+  text-transform: none;
+}
+/* simple single-line CTA (other screens) */
+.cta.cta-simple {
+  flex-direction: row;
+  gap: 14px;
+  padding: 18px 18px;
+  font-size: 11px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
 /* ============ PLACEHOLDER (Mexmonxonalar / Transferlar / Contact) ============ */
@@ -761,6 +768,13 @@ body {
         <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3 L14.4 9 L21 9.5 L16 13.8 L17.5 20.5 L12 17 L6.5 20.5 L8 13.8 L3 9.5 L9.6 9 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
         <symbol id="i-mosque" viewBox="0 0 24 24"><path d="M12 3 C 12 6, 14 7, 14 9 L 10 9 C 10 7, 12 6, 12 3 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M5 20 L5 14 C 5 11, 8 9, 12 9 C 16 9, 19 11, 19 14 L 19 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M3 20 L21 20" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M11 20 L11 16 L13 16 L13 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
 
+        <!-- Home category icons -->
+        <symbol id="h-kaaba" viewBox="0 0 24 24"><path d="M3 8 L12 4 L21 8 L21 18 L12 22 L3 18 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M3 8 L12 12 L21 8" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M12 12 L12 22" stroke="currentColor" stroke-width="1.1"/><path d="M4 12 L11 14 M13 14 L20 12" stroke="currentColor" stroke-width="0.9" opacity="0.7"/></symbol>
+        <symbol id="h-passport" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M9 10 L15 10" stroke="currentColor" stroke-width="0.9" opacity="0.7"/><path d="M9 17 L15 17" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
+        <symbol id="h-hotel" viewBox="0 0 24 24"><path d="M3 21 L21 21" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M5 21 L5 6 L15 6 L15 21" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M15 21 L15 11 L21 11 L21 21" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M7.5 9 L9 9 M11 9 L12.5 9 M7.5 12 L9 12 M11 12 L12.5 12 M7.5 15 L9 15 M11 15 L12.5 15 M17 14 L19 14 M17 17 L19 17" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.7"/></symbol>
+        <symbol id="h-transport" viewBox="0 0 24 24"><rect x="3" y="6" width="10" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M3 10.5 L13 10.5" stroke="currentColor" stroke-width="1.1"/><circle cx="5.5" cy="16.5" r="1.3" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="10.5" cy="16.5" r="1.3" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M13 13 L15 12 L20 12 L21 14 L21 17 L13 17 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><circle cx="17" cy="18" r="1.1" fill="none" stroke="currentColor" stroke-width="1.1"/></symbol>
+        <symbol id="h-chat" viewBox="0 0 24 24"><path d="M4 5 L20 5 L20 16 L13 16 L8 20 L8 16 L4 16 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><circle cx="9" cy="10.5" r="0.8" fill="currentColor"/><circle cx="12" cy="10.5" r="0.8" fill="currentColor"/><circle cx="15" cy="10.5" r="0.8" fill="currentColor"/></symbol>
+
         <symbol id="n-pkg" viewBox="0 0 24 24"><path d="M4 8 L12 4 L20 8 L20 17 L12 21 L4 17 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M4 8 L12 12 L20 8 M12 12 L12 21" fill="none" stroke="currentColor" stroke-width="1.1"/></symbol>
         <symbol id="n-visa" viewBox="0 0 24 24"><rect x="5" y="6" width="14" height="13" rx="0.5" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M9 10 L15 10 M9 13 L15 13 M9 16 L13 16" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
         <symbol id="n-hotel" viewBox="0 0 24 24"><path d="M3 20 L21 20" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M5 20 L5 10 L19 10 L19 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M9 20 L9 15 L15 15 L15 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M5 10 L12 5 L19 10" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
@@ -786,12 +800,14 @@ const CONTACT_URL = "https://t.me/";
 const CONTACT_LABEL = "Biz bilan bog‘laning";
 
 // ===== Categories (home list + bottom tab bar) =====
+// `homeIcon` is the large symbol shown on the home menu rows.
+// `icon` is the smaller icon used inside the bottom tab bar.
 const CATEGORIES = [
-  { id: "umra",     numeral: "I.",   title: "Umra paketlari",       short: "Paket",     icon: "n-pkg",      subtitle: "VIP · Comfort · Standart · Ekonom" },
-  { id: "visa",     numeral: "II.",  title: "Vizalar",              short: "Viza",      icon: "n-visa",     subtitle: "Umra · Turistik · Biznes" },
-  { id: "hotels",   numeral: "III.", title: "Mexmonxonalar",        short: "Otel",      icon: "n-hotel",    subtitle: "Makka va Madina · Haram yaqinida" },
-  { id: "transfer", numeral: "IV.",  title: "Transferlar",          short: "Transfer",  icon: "n-transfer", subtitle: "Aeroport · Makka · Madina" },
-  { id: "contact",  numeral: "V.",   title: "Biz bilan bog‘laning", short: "Aloqa",     icon: "n-chat",     subtitle: "Maslahatchi bilan suhbat · 24/7" },
+  { id: "umra",     homeIcon: "h-kaaba",     icon: "n-pkg",      title: "Umra paketlari",       short: "Paket",    subtitle: "VIP · Comfort · Standart · Ekonom" },
+  { id: "visa",     homeIcon: "h-passport",  icon: "n-visa",     title: "Vizalar",              short: "Viza",     subtitle: "Umra · Turistik · Biznes" },
+  { id: "hotels",   homeIcon: "h-hotel",     icon: "n-hotel",    title: "Mexmonxonalar",        short: "Otel",     subtitle: "Makka va Madina · Haram yaqinida" },
+  { id: "transfer", homeIcon: "h-transport", icon: "n-transfer", title: "Transferlar",          short: "Transfer", subtitle: "Aeroport · Makka · Madina" },
+  { id: "contact",  homeIcon: "h-chat",      icon: "n-chat",     title: "Biz bilan bog‘laning", short: "Aloqa",    subtitle: "Maslahatchi bilan suhbat · 24/7" },
 ];
 
 // ===== Umra packages =====
@@ -931,7 +947,7 @@ const VISAS = [
       <nav class="menu" aria-label="Asosiy menyu">
         ${CATEGORIES.map((c) => `
           <button class="row" data-action="open-category" data-id="${c.id}">
-            <span class="num">${esc(c.numeral)}</span>
+            <span class="num"><svg width="26" height="26"><use href="#${c.homeIcon}"/></svg></span>
             <span class="label">
               <p class="t">${esc(c.title)}</p>
               <p class="d">${esc(c.subtitle)}</p>
@@ -950,7 +966,7 @@ const VISAS = [
   function viewTopbar(title) {
     return `
       <div class="topbar">
-        <button class="iconbtn" data-action="go-home" aria-label="Bosh sahifa">
+        <button class="iconbtn" data-action="go-back" aria-label="Orqaga">
           <svg width="20" height="20"><use href="#i-back"/></svg>
         </button>
         <span class="title">${esc(title)}</span>
@@ -992,7 +1008,6 @@ const VISAS = [
             </div>
             <div class="right">
               <div class="days">${esc(p.days)}</div>
-              <div class="ask">Narx —<br/>so‘rang</div>
             </div>
             <div class="more">Tafsilot</div>
           </button>
@@ -1098,17 +1113,23 @@ const VISAS = [
 
       <div class="feat-list">${feats}</div>
 
-      <div class="ask-block">
-        <div class="lbl">Narxlar va mavjud sanalar bo‘yicha</div>
-        <div class="v">Biz bilan bog‘laning</div>
-      </div>
-
-      <div class="cta-wrap">${ctaButton()}</div>
+      <div class="cta-wrap">${ctaStacked()}</div>
     `;
   }
 
+  // Simple single-line CTA used on category screens.
   function ctaButton() {
-    return `<a class="cta" href="${CONTACT_URL}" target="_blank" rel="noopener">${CONTACT_LABEL}</a>`;
+    return `<a class="cta cta-simple" href="${CONTACT_URL}" target="_blank" rel="noopener">${CONTACT_LABEL}</a>`;
+  }
+
+  // Two-line stacked CTA used on the package detail screen.
+  function ctaStacked() {
+    return `
+      <a class="cta" href="${CONTACT_URL}" target="_blank" rel="noopener">
+        <span class="cta-eyebrow">Narxlar va mavjud sanalar bo‘yicha</span>
+        <span class="cta-main">${CONTACT_LABEL}</span>
+      </a>
+    `;
   }
 
   function renderBottomNav() {
@@ -1152,6 +1173,15 @@ const VISAS = [
     renderBottomNav();
   }
 
+  // Go back one level: package detail → Umra list → home.
+  function goBack() {
+    if (state.activePackage) {
+      goCategory("umra");
+    } else if (state.activeCategory) {
+      goHome();
+    }
+  }
+
   // ---------- events ----------
 
   document.addEventListener("click", (ev) => {
@@ -1164,6 +1194,7 @@ const VISAS = [
       case "open-category": goCategory(id); break;
       case "switch-tab":    goCategory(id); break;
       case "open-package":  goPackage(id); break;
+      case "go-back":       goBack(); break;
       case "go-home":       goHome(); break;
     }
   });

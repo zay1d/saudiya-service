@@ -46,7 +46,7 @@
       <nav class="menu" aria-label="Asosiy menyu">
         ${CATEGORIES.map((c) => `
           <button class="row" data-action="open-category" data-id="${c.id}">
-            <span class="num">${esc(c.numeral)}</span>
+            <span class="num"><svg width="26" height="26"><use href="#${c.homeIcon}"/></svg></span>
             <span class="label">
               <p class="t">${esc(c.title)}</p>
               <p class="d">${esc(c.subtitle)}</p>
@@ -65,7 +65,7 @@
   function viewTopbar(title) {
     return `
       <div class="topbar">
-        <button class="iconbtn" data-action="go-home" aria-label="Bosh sahifa">
+        <button class="iconbtn" data-action="go-back" aria-label="Orqaga">
           <svg width="20" height="20"><use href="#i-back"/></svg>
         </button>
         <span class="title">${esc(title)}</span>
@@ -107,7 +107,6 @@
             </div>
             <div class="right">
               <div class="days">${esc(p.days)}</div>
-              <div class="ask">Narx —<br/>so‘rang</div>
             </div>
             <div class="more">Tafsilot</div>
           </button>
@@ -213,17 +212,23 @@
 
       <div class="feat-list">${feats}</div>
 
-      <div class="ask-block">
-        <div class="lbl">Narxlar va mavjud sanalar bo‘yicha</div>
-        <div class="v">Biz bilan bog‘laning</div>
-      </div>
-
-      <div class="cta-wrap">${ctaButton()}</div>
+      <div class="cta-wrap">${ctaStacked()}</div>
     `;
   }
 
+  // Simple single-line CTA used on category screens.
   function ctaButton() {
-    return `<a class="cta" href="${CONTACT_URL}" target="_blank" rel="noopener">${CONTACT_LABEL}</a>`;
+    return `<a class="cta cta-simple" href="${CONTACT_URL}" target="_blank" rel="noopener">${CONTACT_LABEL}</a>`;
+  }
+
+  // Two-line stacked CTA used on the package detail screen.
+  function ctaStacked() {
+    return `
+      <a class="cta" href="${CONTACT_URL}" target="_blank" rel="noopener">
+        <span class="cta-eyebrow">Narxlar va mavjud sanalar bo‘yicha</span>
+        <span class="cta-main">${CONTACT_LABEL}</span>
+      </a>
+    `;
   }
 
   function renderBottomNav() {
@@ -267,6 +272,15 @@
     renderBottomNav();
   }
 
+  // Go back one level: package detail → Umra list → home.
+  function goBack() {
+    if (state.activePackage) {
+      goCategory("umra");
+    } else if (state.activeCategory) {
+      goHome();
+    }
+  }
+
   // ---------- events ----------
 
   document.addEventListener("click", (ev) => {
@@ -279,6 +293,7 @@
       case "open-category": goCategory(id); break;
       case "switch-tab":    goCategory(id); break;
       case "open-package":  goPackage(id); break;
+      case "go-back":       goBack(); break;
       case "go-home":       goHome(); break;
     }
   });
