@@ -11,9 +11,17 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="app" data-screen="home">
-    <!-- decorative background: large blurred logo + warm gradient -->
+  <div id="app" data-screen="home" data-category="">
+    <!-- decorative background: mosque photo + large blurred logo + warm gradient -->
     <div class="bg-layer" aria-hidden="true">
+      <img class="bg-photo bg-kaaba"
+           src="https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=900&q=80"
+           alt=""
+           onerror="this.onerror=null;this.style.display='none'" />
+      <img class="bg-photo bg-nabawi"
+           src="https://images.unsplash.com/photo-1591789419937-9c7b91a85e5f?auto=format&fit=crop&w=900&q=80"
+           alt=""
+           onerror="this.onerror=null;this.style.display='none'" />
       <img class="logo-blur" src="assets/saudia-service-logo.png" alt="" />
     </div>
 
@@ -23,6 +31,7 @@
         <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6 L15 12 L9 18" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
         <symbol id="i-back" viewBox="0 0 24 24"><path d="M14 6 L8 12 L14 18" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 12 L20 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></symbol>
         <symbol id="i-more" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.1" fill="currentColor"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/><circle cx="18" cy="12" r="1.1" fill="currentColor"/></symbol>
+
         <symbol id="i-passport" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="0.5" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="12" cy="11" r="2.6" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M9 17 L15 17" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
         <symbol id="i-stamp" viewBox="0 0 24 24"><path d="M4 19 L20 19" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M6 16 L18 16 L17 13 L7 13 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M12 13 L12 9 M10 9 L14 9 M11 7 L13 7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
         <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3 L15 3 L19 7 L19 21 L7 21 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M15 3 L15 7 L19 7" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M10 12 L16 12 M10 15 L16 15 M10 18 L13 18" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
@@ -30,11 +39,14 @@
         <symbol id="i-plane" viewBox="0 0 24 24"><path d="M3 14 L21 8 L19 13 L11 14 L8 19 L7 19 L8 14 L4 13 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
         <symbol id="i-hotel" viewBox="0 0 24 24"><path d="M3 20 L21 20" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M4 20 L4 9 L20 9 L20 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M4 9 L12 4 L20 9" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M9 20 L9 14 L15 14 L15 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
         <symbol id="i-bus" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M4 12 L20 12 M8 5 L8 17 M16 5 L16 17" stroke="currentColor" stroke-width="1.1"/><circle cx="8" cy="19" r="1.2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="16" cy="19" r="1.2" fill="none" stroke="currentColor" stroke-width="1.1"/></symbol>
+        <symbol id="i-car" viewBox="0 0 24 24"><path d="M3 14 L4 9 C 4.5 7, 5.5 6, 8 6 L 16 6 C 18.5 6, 19.5 7, 20 9 L 21 14 L 21 18 L 3 18 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.5" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="17" cy="18" r="1.5" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M3 14 L21 14" stroke="currentColor" stroke-width="1.1"/></symbol>
         <symbol id="i-guide" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M5 21 C 5 16, 8 14, 12 14 C 16 14, 19 16, 19 21" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
-        <symbol id="i-meal" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M4 12 L8.5 12 M15.5 12 L20 12" stroke="currentColor" stroke-width="1.1"/></symbol>
+        <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M3 19 C 3 16, 5 14.5, 9 14.5 C 13 14.5, 15 16, 15 19" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><circle cx="17" cy="9.5" r="2.3" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M14.5 19 C 14.5 17, 16 16, 17 16 C 19 16, 20.5 17, 20.5 19" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
+        <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M6 3 L6 9 M8.5 3 L8.5 9 M3.5 3 L3.5 9 M3.5 9 L8.5 9 M6 9 L6 21" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 3 C 14 4, 14 8, 14 11 C 14 12.5, 15 13, 16 13 L 17 13 L 17 21 M 17 13 C 18 13, 19 12.5, 19 11 C 19 8, 19 4, 17 3" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M4 10 L20 10" stroke="currentColor" stroke-width="1.1"/><path d="M8 3 L8 8 M16 3 L16 8" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><circle cx="9" cy="14" r="0.8" fill="currentColor"/><circle cx="12" cy="14" r="0.8" fill="currentColor"/><circle cx="15" cy="14" r="0.8" fill="currentColor"/></symbol>
+        <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 13 L3 20 M21 13 L21 20" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M3 16 L21 16" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M3 16 L3 13 C 3 11.5, 4 10.5, 6 10.5 L 21 10.5 L 21 16" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M7 10.5 L7 8 C 7 7, 8 6.5, 9 6.5 L 14 6.5 C 15 6.5, 16 7, 16 8 L 16 10.5" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
+        <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3 L14.4 9 L21 9.5 L16 13.8 L17.5 20.5 L12 17 L6.5 20.5 L8 13.8 L3 9.5 L9.6 9 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
         <symbol id="i-mosque" viewBox="0 0 24 24"><path d="M12 3 C 12 6, 14 7, 14 9 L 10 9 C 10 7, 12 6, 12 3 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M5 20 L5 14 C 5 11, 8 9, 12 9 C 16 9, 19 11, 19 14 L 19 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M3 20 L21 20" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M11 20 L11 16 L13 16 L13 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
-        <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 L19 6 L19 12 C 19 16, 16 19, 12 21 C 8 19, 5 16, 5 12 L 5 6 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M9 12 L11.5 14.5 L15.5 10.5" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M12 7 L12 12 L16 14" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
 
         <symbol id="n-pkg" viewBox="0 0 24 24"><path d="M4 8 L12 4 L20 8 L20 17 L12 21 L4 17 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M4 8 L12 12 L20 8 M12 12 L12 21" fill="none" stroke="currentColor" stroke-width="1.1"/></symbol>
         <symbol id="n-visa" viewBox="0 0 24 24"><rect x="5" y="6" width="14" height="13" rx="0.5" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M9 10 L15 10 M9 13 L15 13 M9 16 L13 16" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>

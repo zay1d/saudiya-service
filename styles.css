@@ -59,23 +59,51 @@ body {
   overflow: hidden;
 }
 
-/* large blurred logo watermark — different placement per screen */
+/* mosque photos — hidden by default, shown per screen */
+.bg-layer .bg-photo {
+  position: absolute;
+  inset: 0 0 auto 0;
+  width: 100%;
+  height: 70%;
+  object-fit: cover;
+  object-position: 50% 35%;
+  opacity: 0;
+  filter: saturate(0.55) brightness(0.85) contrast(1.05);
+  transition: opacity .4s ease;
+  z-index: 1;
+}
+
+/* Kaaba shows on: home + Umra screens (category=umra, or any package detail) */
+#app[data-screen="home"] .bg-layer .bg-kaaba,
+#app[data-category="umra"] .bg-layer .bg-kaaba,
+#app[data-screen="package"] .bg-layer .bg-kaaba {
+  opacity: 0.30;
+}
+#app[data-screen="home"] .bg-layer .bg-kaaba {
+  opacity: 0.34;
+}
+
+/* Masjid an-Nabawi shows on the other inner screens */
+#app[data-category="visa"]     .bg-layer .bg-nabawi,
+#app[data-category="hotels"]   .bg-layer .bg-nabawi,
+#app[data-category="transfer"] .bg-layer .bg-nabawi,
+#app[data-category="contact"]  .bg-layer .bg-nabawi {
+  opacity: 0.24;
+}
+
+/* large blurred logo watermark — sits on top of the photo */
 .bg-layer .logo-blur {
   position: absolute;
   width: 280px;
   height: auto;
-  opacity: 0.18;
   filter: saturate(0.85) brightness(1.15) blur(0.5px);
+  z-index: 2;
 }
-
-/* HOME — big logo centered, slight scale */
 #app[data-screen="home"] .bg-layer .logo-blur {
   left: 50%; top: 38%;
   transform: translate(-50%, -50%) scale(2.4);
   opacity: 0.22;
 }
-
-/* INNER screens — logo higher, smaller */
 #app[data-screen="category"] .bg-layer .logo-blur,
 #app[data-screen="package"]  .bg-layer .logo-blur {
   left: 50%; top: 32%;
@@ -83,7 +111,7 @@ body {
   opacity: 0.14;
 }
 
-/* warm dusk gradient wash */
+/* warm dusk gradient wash on top of the photo */
 .bg-layer::before {
   content: "";
   position: absolute; inset: 0;
@@ -448,24 +476,15 @@ body {
   font-weight: 400;
   margin-bottom: 8px;
 }
-.pkg-row .price {
+.pkg-row .ask {
   font-family: var(--serif);
+  font-style: italic;
   font-weight: 400;
-  font-size: 22px;
-  color: var(--cream);
-  line-height: 1;
+  font-size: 14px;
+  color: var(--cream-dim);
+  line-height: 1.2;
   white-space: nowrap;
-}
-.pkg-row .price em {
-  font-style: normal;
-  font-family: var(--sans);
-  font-size: 10px;
-  color: var(--dim);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  display: block;
-  margin-top: 6px;
-  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 .pkg-row .more {
   grid-column: 1 / -1;
@@ -565,14 +584,12 @@ body {
   letter-spacing: 0.02em;
 }
 
-.price-block {
-  padding: 26px 28px 24px;
+.ask-block {
+  padding: 26px 28px 4px;
   border-bottom: 1px solid var(--line-12);
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  text-align: center;
 }
-.price-block .lbl {
+.ask-block .lbl {
   font-family: var(--sans);
   font-size: 9.5px;
   letter-spacing: 0.32em;
@@ -580,31 +597,14 @@ body {
   color: var(--muted);
   font-weight: 400;
 }
-.price-block .v {
+.ask-block .v {
   font-family: var(--serif);
+  font-style: italic;
   font-weight: 400;
-  font-size: 34px;
+  font-size: 22px;
   color: var(--cream);
-  line-height: 1;
-  margin-top: 8px;
-}
-.price-block .v em {
-  font-style: normal;
-  font-family: var(--sans);
-  font-size: 10px;
-  color: var(--dim);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  margin-left: 6px;
-  font-weight: 400;
-}
-.price-block .pp {
-  font-family: var(--sans);
-  font-size: 10.5px;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-  font-weight: 300;
-  text-align: right;
+  line-height: 1.2;
+  margin-top: 10px;
 }
 
 .cta-wrap { padding: 24px 28px 28px; }

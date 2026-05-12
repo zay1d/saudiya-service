@@ -28,6 +28,7 @@
   function setScreen(name) {
     state.screen = name;
     appEl.dataset.screen = name;
+    appEl.dataset.category = state.activeCategory || "";
     window.scrollTo(0, 0);
   }
 
@@ -92,7 +93,7 @@
 
       <div class="page-title">
         <h1>To‘rt yo‘nalish</h1>
-        <div class="meta">Har bir yo‘nalish — yopiq guruh, shaxsiy hamrohlik</div>
+        <div class="meta">Har bir yo‘nalish — tartibga solingan ziyorat, shaxsiy hamrohlik</div>
       </div>
 
       <div class="pkg-list">
@@ -106,7 +107,7 @@
             </div>
             <div class="right">
               <div class="days">${esc(p.days)}</div>
-              <div class="price">${esc(p.price)}<em>${esc(p.priceUnit)}</em></div>
+              <div class="ask">Narx —<br/>so‘rang</div>
             </div>
             <div class="more">Tafsilot</div>
           </button>
@@ -121,7 +122,7 @@
 
       <div class="page-title">
         <h1>Saudiya viza<br/>xizmatlari</h1>
-        <div class="meta">Hujjatlarni 7 ish kuni ichida rasmiylashtirib beramiz</div>
+        <div class="meta">Hujjatlarni biz tayyorlaymiz · narxlar bo‘yicha bog‘laning</div>
       </div>
 
       <div class="visa-list">
@@ -132,7 +133,6 @@
               <p class="n">${esc(v.title)}</p>
               <p class="d">${esc(v.desc)}</p>
             </span>
-            <span class="price">${esc(v.price)}<span>${esc(v.priceUnit)}</span></span>
           </div>
         `).join("")}
       </div>
@@ -154,7 +154,7 @@
         <div class="meta">Makka va Madina · Haram yaqinida</div>
       </div>
       <div class="placeholder">
-        <p>Mehmonxonalar ro‘yxati va narxlari<br/>tez kunda joylanadi.</p>
+        <p>Mehmonxonalar ro‘yxati tez kunda joylanadi.<br/>Aniq variantlar uchun biz bilan bog‘laning.</p>
       </div>
       <div class="cta-wrap">${ctaButton()}</div>
     `;
@@ -165,10 +165,10 @@
       <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Transferlar</div>
       <div class="page-title">
         <h1>Transferlar</h1>
-        <div class="meta">Aeroport · Makka · Madina yo‘nalishlarida</div>
+        <div class="meta">Aeroport · Makka · Madina yo‘nalishlari</div>
       </div>
       <div class="placeholder">
-        <p>Transport turlari va shartlari<br/>tez kunda joylanadi.</p>
+        <p>Transport turlari va shartlari tez kunda joylanadi.<br/>Aniq taklif uchun biz bilan bog‘laning.</p>
       </div>
       <div class="cta-wrap">${ctaButton()}</div>
     `;
@@ -182,7 +182,7 @@
         <div class="meta">Maslahatchi bilan suhbat · 24/7</div>
       </div>
       <div class="placeholder">
-        <p>Savol, taklif yoki buyurtma uchun<br/>Telegram orqali yozing.</p>
+        <p>Savol, taklif yoki buyurtma uchun<br/>Telegram orqali yozing — tez orada javob beramiz.</p>
       </div>
       <div class="cta-wrap">${ctaButton()}</div>
     `;
@@ -213,12 +213,9 @@
 
       <div class="feat-list">${feats}</div>
 
-      <div class="price-block">
-        <div>
-          <div class="lbl">Boshlang‘ich narx</div>
-          <div class="v">${esc(pkg.price)}<em>${esc(pkg.priceUnit)}</em></div>
-        </div>
-        <div class="pp">Bo‘lib<br/>to‘lash mavjud</div>
+      <div class="ask-block">
+        <div class="lbl">Narxlar va mavjud sanalar bo‘yicha</div>
+        <div class="v">Biz bilan bog‘laning</div>
       </div>
 
       <div class="cta-wrap">${ctaButton()}</div>
