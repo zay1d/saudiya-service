@@ -9,9 +9,37 @@
 </head>
 <body>
   <div id="app">
-    <main id="content"></main>
+    <main id="content">
+      <header class="home-header">
+        <h1 class="brand">Saudiya Service</h1>
+        <p class="tagline">Xizmatlardan birini tanlang</p>
+      </header>
+      <div class="home-grid">
+        <button class="home-card" data-action="open-category" data-id="umra">
+          <span class="home-card__title">Umra paketlar</span>
+        </button>
+        <button class="home-card" data-action="open-category" data-id="visa">
+          <span class="home-card__title">Vizalar</span>
+        </button>
+        <button class="home-card" data-action="open-category" data-id="hotels">
+          <span class="home-card__title">Mexmonxonalar</span>
+        </button>
+        <button class="home-card" data-action="open-category" data-id="transfer">
+          <span class="home-card__title">Transferlar</span>
+        </button>
+        <button class="home-card" data-action="open-category" data-id="contact">
+          <span class="home-card__title">Biz bilan bog‘laning</span>
+        </button>
+      </div>
+    </main>
     <nav id="bottom-nav" class="hidden" aria-label="Main navigation"></nav>
   </div>
+
+  <noscript>
+    <p style="padding:16px;color:#c00;">
+      JavaScript o‘chirilgan. Iltimos, brauzeringizda JavaScriptni yoqing.
+    </p>
+  </noscript>
 
   <script src="data.js"></script>
   <script src="app.js"></script>
