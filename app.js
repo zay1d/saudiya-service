@@ -3,13 +3,13 @@
   if (tg) {
     tg.ready();
     tg.expand();
-    if (tg.setHeaderColor)     tg.setHeaderColor("#0f1225");
-    if (tg.setBackgroundColor) tg.setBackgroundColor("#0f1225");
+    if (tg.setHeaderColor)     tg.setHeaderColor("#2a1f15");
+    if (tg.setBackgroundColor) tg.setBackgroundColor("#2a1f15");
   }
 
   const appEl     = document.getElementById("app");
   const contentEl = document.getElementById("content");
-  const tabbarEl  = document.getElementById("tabbar");
+  const navEl     = document.getElementById("bottom-nav");
 
   const state = {
     screen: "home",          // "home" | "category" | "package"
@@ -20,7 +20,10 @@
   // ---------- helpers ----------
 
   const esc = (s) =>
-    String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
   function setScreen(name) {
     state.screen = name;
@@ -28,92 +31,84 @@
     window.scrollTo(0, 0);
   }
 
-  // Split a line into leading emoji/icon + remaining text.
-  function splitIcon(line) {
-    const idx = line.indexOf(" ");
-    if (idx <= 0) return { icon: "·", text: line };
-    return { icon: line.slice(0, idx), text: line.slice(idx + 1) };
-  }
-
   // ---------- views ----------
 
   function viewHome() {
     return `
-      <div class="hero">
-        <div class="logo-img">
-          <img src="assets/saudia-service-logo.png" alt="Saudia Service — Umra & Hajj" />
-        </div>
-        <div class="arabic">Makkah · Madinah</div>
+      <div class="brand">
+        <img class="mark" src="assets/saudia-service-logo.png" alt="Saudia Service" />
+        <div class="wordmark">SAUDIA&nbsp;&nbsp;SERVICE</div>
+        <div class="hairline"></div>
+        <div class="arabic">Umra &amp; Hajj — bismillah</div>
       </div>
 
-      <div class="cats">
+      <nav class="menu" aria-label="Asosiy menyu">
         ${CATEGORIES.map((c) => `
-          <button class="cat" data-action="open-category" data-id="${c.id}">
-            <div class="ico">${c.numeral}</div>
-            <div class="label">
-              <div class="t">${esc(c.title)}</div>
-              <div class="d">${esc(c.subtitle)}</div>
-            </div>
-            <div class="chev">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-            </div>
+          <button class="row" data-action="open-category" data-id="${c.id}">
+            <span class="num">${esc(c.numeral)}</span>
+            <span class="label">
+              <p class="t">${esc(c.title)}</p>
+              <p class="d">${esc(c.subtitle)}</p>
+            </span>
+            <span class="chev"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
           </button>
         `).join("")}
+      </nav>
+
+      <div class="home-foot">
+        <div class="small">Toshkent · Madina · Makka</div>
+      </div>
+    `;
+  }
+
+  function viewTopbar(title) {
+    return `
+      <div class="topbar">
+        <button class="iconbtn" data-action="go-home" aria-label="Bosh sahifa">
+          <svg width="20" height="20"><use href="#i-back"/></svg>
+        </button>
+        <span class="title">${esc(title)}</span>
+        <span></span>
       </div>
     `;
   }
 
   function viewCategory(catId) {
     const cat = CATEGORIES.find((c) => c.id === catId);
-
     let body = "";
     switch (catId) {
       case "umra":     body = viewUmraList(); break;
       case "visa":     body = viewVisaList(); break;
-      case "hotels":   body = viewPlaceholder(
-        "Tez orada",
-        "Mexmonxonalar bo‘yicha ma’lumotlar tez kunda joylanadi.\nAniq taklif uchun biz bilan bog‘laning."
-      ); break;
-      case "transfer": body = viewPlaceholder(
-        "Tez orada",
-        "Transfer xizmatlari bo‘yicha ma’lumotlar tez kunda joylanadi.\nAniq taklif uchun biz bilan bog‘laning."
-      ); break;
+      case "hotels":   body = viewHotelsPlaceholder(); break;
+      case "transfer": body = viewTransferPlaceholder(); break;
       case "contact":  body = viewContact(); break;
     }
-
-    return `
-      <div class="topbar">
-        <button class="iconbtn" data-action="go-home" aria-label="Bosh sahifa">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-        </button>
-        <div class="title">${esc(cat.title)}</div>
-        <div style="width:32px"></div>
-      </div>
-      ${body}
-    `;
+    return viewTopbar(cat.title) + body;
   }
 
   function viewUmraList() {
     return `
-      <div class="section-head">
-        <div class="eyebrow">Saudia Arabia · Umra</div>
-        <h2>Paketni tanlang</h2>
-        <p>Har bir paket — siz uchun mukammal<br/>tartibga solingan ziyorat.</p>
+      <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Umra paketlari</div>
+
+      <div class="page-title">
+        <h1>To‘rt yo‘nalish</h1>
+        <div class="meta">Har bir yo‘nalish — yopiq guruh, shaxsiy hamrohlik</div>
       </div>
+
       <div class="pkg-list">
         ${UMRA_PACKAGES.map((p) => `
-          <button class="pkg ${p.highlight ? "vip" : ""}" data-action="open-package" data-id="${p.id}">
-            <div class="pkg-head">
-              <div class="pkg-tier">${esc(p.tier)}</div>
-              <div class="pkg-days">${esc(p.days)}</div>
+          <button class="pkg-row ${p.highlight ? "vip" : (p.id === "ekonom" ? "eco" : p.id === "standard" ? "std" : "")}"
+                  data-action="open-package" data-id="${p.id}">
+            <div>
+              <p class="tier">${esc(p.tier)}</p>
+              <h3>${esc(p.title)}</h3>
+              <p class="sub">${esc(p.cardSub)}</p>
             </div>
-            <h3>${esc(p.title)}</h3>
-            <div class="pkg-sub">${esc(p.subtitle)}</div>
-            <div class="pkg-row">
-              <div class="pkg-cta">Batafsil
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-              </div>
+            <div class="right">
+              <div class="days">${esc(p.days)}</div>
+              <div class="price">${esc(p.price)}<em>${esc(p.priceUnit)}</em></div>
             </div>
+            <div class="more">Tafsilot</div>
           </button>
         `).join("")}
       </div>
@@ -122,53 +117,74 @@
 
   function viewVisaList() {
     return `
-      <div class="section-head">
-        <div class="eyebrow">Saudia Arabia · 2026</div>
-        <h2>Viza turini tanlang</h2>
-        <p>Hujjatlarni biz tayyorlaymiz. Siz faqat<br/>safarga tayyorlik ko‘rasiz.</p>
+      <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Vizalar</div>
+
+      <div class="page-title">
+        <h1>Saudiya viza<br/>xizmatlari</h1>
+        <div class="meta">Hujjatlarni 7 ish kuni ichida rasmiylashtirib beramiz</div>
       </div>
+
       <div class="visa-list">
         ${VISAS.map((v) => `
           <div class="visa">
-            <div class="badge">${esc(v.badge)}</div>
-            <div class="meta">
-              <div class="n">${esc(v.title)}</div>
-              <div class="d">${esc(v.desc)}</div>
-            </div>
+            <span class="ico"><svg width="22" height="22"><use href="#${v.icon}"/></svg></span>
+            <span class="meta">
+              <p class="n">${esc(v.title)}</p>
+              <p class="d">${esc(v.desc)}</p>
+            </span>
+            <span class="price">${esc(v.price)}<span>${esc(v.priceUnit)}</span></span>
           </div>
         `).join("")}
       </div>
-      <div class="notice">
-        <b>Eslatma —</b> Aniq narxlar va shartlar uchun menejer bilan bog‘laning.
+
+      <div class="info-note">
+        <div class="eyebrow">ESLATMA</div>
+        <p class="t">Pasportingiz amal qilish muddati safardan kamida 6 oy keyin tugashi kerak.</p>
       </div>
-      <div style="padding:24px 20px 0;">
-        ${ctaButton()}
-      </div>
+
+      <div class="cta-wrap">${ctaButton()}</div>
     `;
   }
 
-  function viewPlaceholder(title, text) {
+  function viewHotelsPlaceholder() {
     return `
-      <div class="placeholder">
-        <h3>${esc(title)}</h3>
-        <p>${esc(text).replace(/\n/g, "<br/>")}</p>
-        <div class="cta-wrap">${ctaButton()}</div>
+      <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Mexmonxonalar</div>
+      <div class="page-title">
+        <h1>Mexmonxonalar</h1>
+        <div class="meta">Makka va Madina · Haram yaqinida</div>
       </div>
+      <div class="placeholder">
+        <p>Mehmonxonalar ro‘yxati va narxlari<br/>tez kunda joylanadi.</p>
+      </div>
+      <div class="cta-wrap">${ctaButton()}</div>
+    `;
+  }
+
+  function viewTransferPlaceholder() {
+    return `
+      <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Transferlar</div>
+      <div class="page-title">
+        <h1>Transferlar</h1>
+        <div class="meta">Aeroport · Makka · Madina yo‘nalishlarida</div>
+      </div>
+      <div class="placeholder">
+        <p>Transport turlari va shartlari<br/>tez kunda joylanadi.</p>
+      </div>
+      <div class="cta-wrap">${ctaButton()}</div>
     `;
   }
 
   function viewContact() {
     return `
-      <div class="placeholder">
-        <h3>Biz bilan bog‘laning</h3>
-        <p>Savol, taklif yoki buyurtma uchun<br/>Telegram orqali yozing — tezda javob beramiz.</p>
-        <div class="cta-wrap">
-          <a class="cta" href="${CONTACT_URL}" target="_blank" rel="noopener">
-            Telegram orqali yozish
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </a>
-        </div>
+      <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Aloqa</div>
+      <div class="page-title">
+        <h1>Biz bilan<br/>bog‘laning</h1>
+        <div class="meta">Maslahatchi bilan suhbat · 24/7</div>
       </div>
+      <div class="placeholder">
+        <p>Savol, taklif yoki buyurtma uchun<br/>Telegram orqali yozing.</p>
+      </div>
+      <div class="cta-wrap">${ctaButton()}</div>
     `;
   }
 
@@ -176,59 +192,54 @@
     const pkg = UMRA_PACKAGES.find((p) => p.id === pkgId);
     if (!pkg) return viewUmraList();
 
-    const feats = pkg.lines.map((line) => {
-      const { icon, text } = splitIcon(line);
-      return `
-        <div class="feat">
-          <div class="fi">${icon}</div>
-          <div class="ft">${esc(text)}</div>
+    const feats = pkg.features.map((f) => `
+      <div class="feat">
+        <span class="ico"><svg width="22" height="22"><use href="#${f.icon}"/></svg></span>
+        <div>
+          <p class="ft">${esc(f.title)}</p>
+          <p class="fd">${esc(f.desc)}</p>
         </div>
-      `;
-    }).join("");
-
-    return `
-      <div class="pkg-detail">
-        <button class="back" data-action="back-to-umra">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-          ORQAGA
-        </button>
-
-        <div class="tier-line">
-          <span class="pill">${esc(pkg.tier)}</span>
-          <span class="days">${esc(pkg.days)}</span>
-        </div>
-        <h1 class="pname">${esc(pkg.title)}</h1>
-        <div class="pname-sub">${esc(pkg.subtitle)}</div>
-
-        <div class="feats">${feats}</div>
-
-        ${pkg.note ? `<div class="pkg-note">${esc(pkg.note)}</div>` : ""}
-
-        <div class="cta-wrap">${ctaButton()}</div>
+        <div class="fv">${esc(f.value)}</div>
       </div>
+    `).join("");
+
+    return viewTopbar(pkg.title) + `
+      <div class="detail-head">
+        <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Umra paketlari<span class="sep">/</span>${esc(pkg.title)}</div>
+        <h1>${esc(pkg.headline).replace(/\n/g, "<br/>")}</h1>
+        <div class="hairline"></div>
+        <p class="lede">${esc(pkg.lede)}</p>
+      </div>
+
+      <div class="feat-list">${feats}</div>
+
+      <div class="price-block">
+        <div>
+          <div class="lbl">Boshlang‘ich narx</div>
+          <div class="v">${esc(pkg.price)}<em>${esc(pkg.priceUnit)}</em></div>
+        </div>
+        <div class="pp">Bo‘lib<br/>to‘lash mavjud</div>
+      </div>
+
+      <div class="cta-wrap">${ctaButton()}</div>
     `;
   }
 
   function ctaButton() {
-    return `
-      <a class="cta" href="${CONTACT_URL}" target="_blank" rel="noopener">
-        ${CONTACT_LABEL}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-      </a>
-    `;
+    return `<a class="cta" href="${CONTACT_URL}" target="_blank" rel="noopener">${CONTACT_LABEL}</a>`;
   }
 
-  function renderTabbar() {
+  function renderBottomNav() {
     if (state.screen === "home") {
-      tabbarEl.classList.add("hidden");
-      tabbarEl.innerHTML = "";
+      navEl.classList.add("hidden");
+      navEl.innerHTML = "";
       return;
     }
-    tabbarEl.classList.remove("hidden");
-    tabbarEl.innerHTML = CATEGORIES.map((c) => `
+    navEl.classList.remove("hidden");
+    navEl.innerHTML = CATEGORIES.map((c) => `
       <button class="tab ${c.id === state.activeCategory ? "active" : ""}" data-action="switch-tab" data-id="${c.id}">
-        ${ICONS[c.id]}
-        <span>${esc(c.short)}</span>
+        <svg width="20" height="20"><use href="#${c.icon}"/></svg>
+        <span class="lbl">${esc(c.short)}</span>
       </button>
     `).join("");
   }
@@ -240,7 +251,7 @@
     state.activePackage = null;
     contentEl.innerHTML = viewHome();
     setScreen("home");
-    renderTabbar();
+    renderBottomNav();
   }
 
   function goCategory(catId) {
@@ -248,7 +259,7 @@
     state.activePackage = null;
     contentEl.innerHTML = viewCategory(catId);
     setScreen("category");
-    renderTabbar();
+    renderBottomNav();
   }
 
   function goPackage(pkgId) {
@@ -256,7 +267,7 @@
     state.activePackage = pkgId;
     contentEl.innerHTML = viewPackageDetail(pkgId);
     setScreen("package");
-    renderTabbar();
+    renderBottomNav();
   }
 
   // ---------- events ----------
@@ -271,7 +282,6 @@
       case "open-category": goCategory(id); break;
       case "switch-tab":    goCategory(id); break;
       case "open-package":  goPackage(id); break;
-      case "back-to-umra":  goCategory("umra"); break;
       case "go-home":       goHome(); break;
     }
   });
