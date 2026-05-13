@@ -1,7 +1,15 @@
 // ===== Contact (used by CTAs across the app) =====
-// TODO: replace with actual personal Telegram (e.g. "https://t.me/yourusername")
+// Direct Telegram link used by category-level CTAs (Vizalar, Mexmonxonalar,
+// Transferlar, Aloqa). The Umra package detail screen uses the API form below
+// instead so the admin gets a structured notification.
+// TODO: replace with the manager's @username
 const CONTACT_URL = "https://t.me/";
 const CONTACT_LABEL = "Biz bilan bog‘laning";
+
+// ===== Backend API =====
+// Used by the lead form on Umra package detail screens. After buying a real
+// domain, change the host here only.
+const API_URL = "https://167-86-125-229.nip.io/api";
 
 // ===== Categories (home list + bottom tab bar) =====
 // `homeIcon` is the large symbol shown on the home menu rows.

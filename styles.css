@@ -663,6 +663,205 @@ body {
   color: var(--cream-dim);
 }
 
+/* ============ LEAD MODAL ============ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(15, 10, 6, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity .25s ease;
+}
+.modal-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--line-25);
+  border-radius: 22px 22px 0 0;
+  padding: 28px 24px calc(28px + env(safe-area-inset-bottom));
+  transform: translateY(0);
+  transition: transform .3s ease;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+.modal-overlay.hidden .modal { transform: translateY(100%); }
+
+.modal-head {
+  text-align: center;
+  margin-bottom: 22px;
+}
+.modal-head .eyebrow {
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 400;
+}
+.modal-head h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 26px;
+  color: var(--cream);
+  margin: 6px 0 0;
+  letter-spacing: 0.005em;
+}
+.modal-head .hairline {
+  width: 30px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.4;
+  margin: 14px auto 0;
+}
+
+.modal .field {
+  margin-bottom: 18px;
+}
+.modal .field label {
+  display: block;
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 400;
+}
+.modal .field input,
+.modal .field textarea {
+  width: 100%;
+  background: rgba(26, 19, 12, 0.7);
+  border: 1px solid var(--line-12);
+  border-radius: 6px;
+  padding: 14px 16px;
+  color: var(--cream);
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color .2s ease, background .2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.modal .field textarea {
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.55;
+  min-height: 88px;
+  resize: vertical;
+  font-weight: 300;
+}
+.modal .field input::placeholder,
+.modal .field textarea::placeholder {
+  color: var(--muted-dim, #6b5d48);
+}
+.modal .field input:focus,
+.modal .field textarea:focus {
+  border-color: var(--gold);
+  background: rgba(26, 19, 12, 0.9);
+}
+.modal .field .err {
+  display: none;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #d68b6a;
+  letter-spacing: 0.02em;
+}
+.modal .field.invalid .err { display: block; }
+.modal .field.invalid input,
+.modal .field.invalid textarea { border-color: #d68b6a; }
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.modal-actions .btn-secondary {
+  flex: 0 0 auto;
+  padding: 16px 22px;
+  background: transparent;
+  border: 1px solid var(--line-20);
+  border-radius: 1px;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 500;
+}
+.modal-actions .btn-primary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 18px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: 1px;
+  color: var(--gold);
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background .25s ease, color .25s ease;
+}
+.modal-actions .btn-primary:active {
+  background: rgba(214,184,123,0.07);
+  color: var(--gold-light);
+}
+.modal-actions .btn-primary[disabled] {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.modal-status {
+  text-align: center;
+  padding: 12px 4px 4px;
+}
+.modal-status .glyph {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  color: var(--gold);
+}
+.modal-status h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--cream);
+  margin: 0 0 8px;
+}
+.modal-status p {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 24px;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+.modal-status.error .glyph { border-color: #d68b6a; color: #d68b6a; }
+.modal-status.error h3 { color: #ecc7ba; }
+
 /* ============ BOTTOM NAV ============ */
 
 .bottom-nav {

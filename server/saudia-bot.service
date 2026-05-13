@@ -1,0 +1,17 @@
+[Unit]
+Description=Saudia Service Lead API
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/saudia-service
+EnvironmentFile=/opt/saudia-service/.env
+ExecStart=/opt/saudia-service/.venv/bin/uvicorn server.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/saudia-bot.log
+StandardError=append:/var/log/saudia-bot.log
+
+[Install]
+WantedBy=multi-user.target

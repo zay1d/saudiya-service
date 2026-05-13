@@ -212,22 +212,24 @@
 
       <div class="feat-list">${feats}</div>
 
-      <div class="cta-wrap">${ctaStacked()}</div>
+      <div class="cta-wrap">${ctaStacked(pkg)}</div>
     `;
   }
 
-  // Simple single-line CTA used on category screens.
+  // Simple single-line CTA used on category screens (Vizalar/Otel/Transfer/Aloqa).
+  // Opens a Telegram chat directly.
   function ctaButton() {
     return `<a class="cta cta-simple" href="${CONTACT_URL}" target="_blank" rel="noopener">${CONTACT_LABEL}</a>`;
   }
 
-  // Two-line stacked CTA used on the package detail screen.
-  function ctaStacked() {
+  // Two-line stacked CTA on the Umra package detail screen.
+  // Opens the in-app lead form (so admin gets a structured notification).
+  function ctaStacked(pkg) {
     return `
-      <a class="cta" href="${CONTACT_URL}" target="_blank" rel="noopener">
+      <button class="cta" type="button" data-action="open-lead" data-pkg-id="${esc(pkg.id)}">
         <span class="cta-eyebrow">Narxlar va mavjud sanalar bo‘yicha</span>
         <span class="cta-main">${CONTACT_LABEL}</span>
-      </a>
+      </button>
     `;
   }
 
@@ -281,6 +283,130 @@
     }
   }
 
+  // ---------- lead modal ----------
+
+  const modalEl = document.getElementById("lead-modal");
+  const modalInner = modalEl.querySelector(".modal");
+
+  function openLeadModal(pkgId) {
+    const pkg = UMRA_PACKAGES.find((p) => p.id === pkgId);
+    if (!pkg) return;
+    renderLeadForm(pkg);
+    modalEl.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    // Focus the name field shortly after the open transition.
+    setTimeout(() => {
+      const input = modalInner.querySelector('input[name="name"]');
+      if (input) input.focus();
+    }, 240);
+  }
+
+  function closeLeadModal() {
+    modalEl.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  function renderLeadForm(pkg) {
+    modalInner.innerHTML = `
+      <div class="modal-head">
+        <div class="eyebrow">Umra · ${esc(pkg.tier)}</div>
+        <h2 id="lead-title">${esc(pkg.title)} paketi</h2>
+        <div class="hairline"></div>
+      </div>
+      <form id="lead-form" novalidate>
+        <div class="field" data-field="name">
+          <label for="lead-name">Ismingiz</label>
+          <input id="lead-name" name="name" type="text" maxlength="100" required
+                 autocomplete="given-name" placeholder="Familiya Ism" />
+          <div class="err">Iltimos, ismingizni kiriting</div>
+        </div>
+        <div class="field" data-field="question">
+          <label for="lead-question">Qo‘shimcha savol (ixtiyoriy)</label>
+          <textarea id="lead-question" name="question" maxlength="2000"
+                    placeholder="Masalan: sentyabrda guruh bormi?"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-action="close-lead">Bekor</button>
+          <button type="submit" class="btn-primary" data-role="submit">Yuborish</button>
+        </div>
+      </form>
+    `;
+    const form = modalInner.querySelector("#lead-form");
+    form.addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      submitLead(pkg, form);
+    });
+  }
+
+  function renderLeadStatus(kind, title, text) {
+    const glyph = kind === "success"
+      ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7.5"/></svg>'
+      : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8 L12 13 M12 16.5 L12.01 16.5"/><circle cx="12" cy="12" r="9"/></svg>';
+    modalInner.innerHTML = `
+      <div class="modal-status ${kind}">
+        <div class="glyph">${glyph}</div>
+        <h3>${esc(title)}</h3>
+        <p>${esc(text)}</p>
+        <div class="modal-actions" style="justify-content:center">
+          <button type="button" class="btn-primary" data-action="close-lead">Yopish</button>
+        </div>
+      </div>
+    `;
+  }
+
+  async function submitLead(pkg, form) {
+    const nameField = form.querySelector('[data-field="name"]');
+    const nameInput = form.querySelector('input[name="name"]');
+    const questionInput = form.querySelector('textarea[name="question"]');
+    const submitBtn = form.querySelector('[data-role="submit"]');
+
+    const name = (nameInput.value || "").trim();
+    const question = (questionInput.value || "").trim();
+
+    nameField.classList.remove("invalid");
+    if (!name) {
+      nameField.classList.add("invalid");
+      nameInput.focus();
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Yuborilmoqda…";
+
+    const initData = (tg && tg.initData) || "";
+
+    try {
+      const resp = await fetch(`${API_URL}/lead`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          question,
+          package_id: pkg.id,
+          package_title: `${pkg.title} (${pkg.tier})`,
+          init_data: initData,
+        }),
+      });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${resp.status}`);
+      }
+      renderLeadStatus(
+        "success",
+        "Rahmat!",
+        "Sizning so‘rovingiz qabul qilindi. Menejer tez orada Telegram orqali bog‘lanadi."
+      );
+    } catch (e) {
+      renderLeadStatus(
+        "error",
+        "Xatolik yuz berdi",
+        e && e.message
+          ? `${e.message}. Birozdan keyin qayta urinib ko‘ring.`
+          : "Tarmoq xatosi. Birozdan keyin qayta urinib ko‘ring."
+      );
+    }
+  }
+
   // ---------- events ----------
 
   document.addEventListener("click", (ev) => {
@@ -295,6 +421,20 @@
       case "open-package":  goPackage(id); break;
       case "go-back":       goBack(); break;
       case "go-home":       goHome(); break;
+      case "open-lead":     openLeadModal(t.dataset.pkgId); break;
+      case "close-lead":    closeLeadModal(); break;
+    }
+  });
+
+  // close modal on overlay tap (but not when clicking the inner card)
+  modalEl.addEventListener("click", (ev) => {
+    if (ev.target === modalEl) closeLeadModal();
+  });
+
+  // close modal on Escape
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && !modalEl.classList.contains("hidden")) {
+      closeLeadModal();
     }
   });
 
