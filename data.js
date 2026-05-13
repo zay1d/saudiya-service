@@ -102,9 +102,15 @@ const UMRA_PACKAGES = [
   },
 ];
 
-// ===== Visas (placeholder; replace prices when finalised) =====
-const VISAS = [
-  { icon: "i-passport", title: "Umra vizasi",   desc: "90 kun · ko‘p martali · ziyorat uchun" },
-  { icon: "i-stamp",    title: "Turistik viza", desc: "30 kun · bir martali · sayohat uchun" },
-  { icon: "i-doc",      title: "Biznes viza",   desc: "90 kun · ko‘p martali · ish safari" },
+// ===== Visas =====
+// Loaded at runtime from `${API_URL}/content`. The hardcoded list below is
+// used only as a fallback if the API is unreachable (e.g. offline preview).
+const VISAS_FALLBACK = [
+  { id: "umra",           icon: "i-mosque",    emoji: "🕋", title: "Umra vizasi",            tagline: "Faqat ibodat uchun eng qulay variant", short: "1 marta · 90 kun",            price: 185, currency: "USD", features: ["1 marta kirasiz", "90 kungacha bemalol yurasiz"], warnings: [], highlight: "Umra qilish uchun ideal" },
+  { id: "tourist_multi",  icon: "i-globe",     emoji: "🌍", title: "Turist vizasi (Multi)",  tagline: "Eng erkin va qulay viza",              short: "1 yil · multi · 90 kun jami", price: 320, currency: "USD", features: ["1 yil davomida ishlaydi", "Xohlagancha kirib-chiqasiz"], warnings: ["Jami 90 kun ichida bo‘lish mumkin"], highlight: "Ko‘p qatnab turadiganlar uchun TOP variant" },
+  { id: "tourist_single", icon: "i-stamp",     emoji: "✈️", title: "Turist vizasi (Single)", tagline: "Eng oddiy va arzon variant",           short: "1 marta · 90 kun",            price: 140, currency: "USD", features: ["1 marta kirasiz", "90 kungacha qolasiz"], warnings: ["Chiqib ketsangiz — viza yopiladi", "Qayta kirish uchun yangi viza olish kerak"], highlight: "Bir martalik safar uchun mos" },
+  { id: "business",       icon: "i-briefcase", emoji: "💼", title: "Biznes vizasi",          tagline: "Ish, uchrashuv va hamkorlik uchun",    short: "1 yil · multi · 90 kun/kirish", price: 280, currency: "USD", features: ["1 yil amal qiladi", "Xohlagancha kirib-chiqish mumkin", "Har bir kirishda 90 kungacha qolish mumkin"], warnings: [], highlight: "Ish bilan qatnaydiganlar uchun eng to‘g‘ri tanlov" },
 ];
+
+// Live data, populated by app.js after the /api/content fetch.
+let VISAS = VISAS_FALLBACK.slice();

@@ -12,10 +12,26 @@
   const navEl     = document.getElementById("bottom-nav");
 
   const state = {
-    screen: "home",          // "home" | "category" | "package"
+    screen: "home",          // "home" | "category" | "package" | "visa"
     activeCategory: null,
     activePackage: null,
+    activeVisa: null,
   };
+
+  // ---------- content fetch ----------
+
+  async function fetchContent() {
+    try {
+      const r = await fetch(`${API_URL}/content`, { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      if (Array.isArray(data.visas) && data.visas.length > 0) {
+        VISAS = data.visas;
+      }
+    } catch (e) {
+      console.warn("content fetch failed, using fallback", e);
+    }
+  }
 
   // ---------- helpers ----------
 
@@ -79,7 +95,12 @@
     let body = "";
     switch (catId) {
       case "umra":     body = viewUmraList(); break;
-      case "visa":     body = viewVisaList(); break;
+      case "visa":
+        if (state.activeVisa) {
+          return viewVisaDetail(state.activeVisa);
+        }
+        body = viewVisaList();
+        break;
       case "hotels":   body = viewHotelsPlaceholder(); break;
       case "transfer": body = viewTransferPlaceholder(); break;
       case "contact":  body = viewContact(); break;
@@ -121,18 +142,23 @@
 
       <div class="page-title">
         <h1>Saudiya viza<br/>xizmatlari</h1>
-        <div class="meta">Hujjatlarni biz tayyorlaymiz · narxlar bo‘yicha bog‘laning</div>
+        <div class="meta">Hujjatlarni biz tayyorlaymiz · ${VISAS.length} ta turi</div>
       </div>
 
-      <div class="visa-list">
+      <div class="pkg-list">
         ${VISAS.map((v) => `
-          <div class="visa">
-            <span class="ico"><svg width="22" height="22"><use href="#${v.icon}"/></svg></span>
-            <span class="meta">
-              <p class="n">${esc(v.title)}</p>
-              <p class="d">${esc(v.desc)}</p>
-            </span>
-          </div>
+          <button class="pkg-row" data-action="open-visa" data-id="${esc(v.id)}">
+            <div>
+              <p class="tier"><span class="visa-emoji">${v.emoji || ""}</span> ${esc(v.short || "")}</p>
+              <h3>${esc(v.title)}</h3>
+              <p class="sub">${esc(v.tagline || "")}</p>
+            </div>
+            <div class="right">
+              <div class="days">${esc(v.currency || "USD")}</div>
+              <div class="visa-price">${v.price ? `$${v.price}` : "—"}</div>
+            </div>
+            <div class="more">Tafsilot</div>
+          </button>
         `).join("")}
       </div>
 
@@ -140,8 +166,58 @@
         <div class="eyebrow">ESLATMA</div>
         <p class="t">Pasportingiz amal qilish muddati safardan kamida 6 oy keyin tugashi kerak.</p>
       </div>
+    `;
+  }
 
-      <div class="cta-wrap">${ctaButton()}</div>
+  function viewVisaDetail(visaId) {
+    const v = VISAS.find((x) => x.id === visaId);
+    if (!v) return viewVisaList();
+
+    const featRows = (v.features || []).map((line) => `
+      <div class="feat">
+        <span class="ico"><svg width="20" height="20"><use href="#i-check"/></svg></span>
+        <div><p class="ft">${esc(line)}</p></div>
+      </div>
+    `).join("");
+
+    const warnRows = (v.warnings || []).length
+      ? `<div class="warn-list">
+           ${(v.warnings || []).map((w) => `
+             <div class="warn">
+               <span class="ico"><svg width="18" height="18"><use href="#i-warn"/></svg></span>
+               <span>${esc(w)}</span>
+             </div>
+           `).join("")}
+         </div>`
+      : "";
+
+    return viewTopbar(v.title) + `
+      <div class="pkg-detail">
+        <div class="detail-head">
+          <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Vizalar<span class="sep">/</span>${esc(v.title)}</div>
+          <h1>${v.emoji || ""} ${esc(v.title)}</h1>
+          <div class="hairline"></div>
+          <p class="lede">${esc(v.tagline || "")}</p>
+        </div>
+
+        <div class="feat-list">${featRows}</div>
+
+        ${warnRows}
+
+        ${v.highlight ? `<div class="pkg-note">${esc(v.highlight)}</div>` : ""}
+
+        <div class="visa-price-block">
+          <div class="lbl">Narx</div>
+          <div class="v">${v.price ? `$${v.price}` : "—"}<em>${esc(v.currency || "USD")}</em></div>
+        </div>
+
+        <div class="cta-wrap">
+          <button class="cta" type="button" data-action="open-lead-visa" data-visa-id="${esc(v.id)}">
+            <span class="cta-eyebrow">Viza arizasini boshlash</span>
+            <span class="cta-main">Xarid qilish</span>
+          </button>
+        </div>
+      </div>
     `;
   }
 
@@ -261,6 +337,7 @@
   function goCategory(catId) {
     state.activeCategory = catId;
     state.activePackage = null;
+    state.activeVisa = null;
     contentEl.innerHTML = viewCategory(catId);
     setScreen("category");
     renderBottomNav();
@@ -269,15 +346,28 @@
   function goPackage(pkgId) {
     state.activeCategory = "umra";
     state.activePackage = pkgId;
+    state.activeVisa = null;
     contentEl.innerHTML = viewPackageDetail(pkgId);
     setScreen("package");
     renderBottomNav();
   }
 
-  // Go back one level: package detail → Umra list → home.
+  function goVisa(visaId) {
+    state.activeCategory = "visa";
+    state.activeVisa = visaId;
+    state.activePackage = null;
+    contentEl.innerHTML = viewVisaDetail(visaId);
+    setScreen("visa");
+    renderBottomNav();
+  }
+
+  // Go back one level: detail → list → home.
   function goBack() {
     if (state.activePackage) {
       goCategory("umra");
+    } else if (state.activeVisa) {
+      state.activeVisa = null;
+      goCategory("visa");
     } else if (state.activeCategory) {
       goHome();
     }
@@ -288,13 +378,27 @@
   const modalEl = document.getElementById("lead-modal");
   const modalInner = modalEl.querySelector(".modal");
 
-  function openLeadModal(pkgId) {
-    const pkg = UMRA_PACKAGES.find((p) => p.id === pkgId);
-    if (!pkg) return;
-    renderLeadForm(pkg);
+  function openLeadModal(ref) {
+    // ref = { kind: "package" | "visa", id }
+    let item, eyebrow;
+    if (ref.kind === "package") {
+      item = UMRA_PACKAGES.find((p) => p.id === ref.id);
+      if (!item) return;
+      eyebrow = `Umra · ${item.tier}`;
+      item.__title = `${item.title} paketi`;
+      item.__leadId = `package:${item.id}`;
+      item.__leadTitle = `${item.title} (${item.tier})`;
+    } else {
+      item = VISAS.find((v) => v.id === ref.id);
+      if (!item) return;
+      eyebrow = `Viza · ${item.short || ""}`;
+      item.__title = item.title;
+      item.__leadId = `visa:${item.id}`;
+      item.__leadTitle = `${item.title}${item.price ? ` ($${item.price})` : ""}`;
+    }
+    renderLeadForm(item, eyebrow);
     modalEl.classList.remove("hidden");
     document.body.style.overflow = "hidden";
-    // Focus the name field shortly after the open transition.
     setTimeout(() => {
       const input = modalInner.querySelector('input[name="name"]');
       if (input) input.focus();
@@ -306,11 +410,11 @@
     document.body.style.overflow = "";
   }
 
-  function renderLeadForm(pkg) {
+  function renderLeadForm(item, eyebrow) {
     modalInner.innerHTML = `
       <div class="modal-head">
-        <div class="eyebrow">Umra · ${esc(pkg.tier)}</div>
-        <h2 id="lead-title">${esc(pkg.title)} paketi</h2>
+        <div class="eyebrow">${esc(eyebrow)}</div>
+        <h2 id="lead-title">${esc(item.__title)}</h2>
         <div class="hairline"></div>
       </div>
       <form id="lead-form" novalidate>
@@ -334,7 +438,7 @@
     const form = modalInner.querySelector("#lead-form");
     form.addEventListener("submit", (ev) => {
       ev.preventDefault();
-      submitLead(pkg, form);
+      submitLead(item, form);
     });
   }
 
@@ -354,7 +458,7 @@
     `;
   }
 
-  async function submitLead(pkg, form) {
+  async function submitLead(item, form) {
     const nameField = form.querySelector('[data-field="name"]');
     const nameInput = form.querySelector('input[name="name"]');
     const questionInput = form.querySelector('textarea[name="question"]');
@@ -382,8 +486,8 @@
         body: JSON.stringify({
           name,
           question,
-          package_id: pkg.id,
-          package_title: `${pkg.title} (${pkg.tier})`,
+          package_id: item.__leadId,
+          package_title: item.__leadTitle,
           init_data: initData,
         }),
       });
@@ -419,9 +523,11 @@
       case "open-category": goCategory(id); break;
       case "switch-tab":    goCategory(id); break;
       case "open-package":  goPackage(id); break;
+      case "open-visa":     goVisa(id); break;
       case "go-back":       goBack(); break;
       case "go-home":       goHome(); break;
-      case "open-lead":     openLeadModal(t.dataset.pkgId); break;
+      case "open-lead":     openLeadModal({ kind: "package", id: t.dataset.pkgId }); break;
+      case "open-lead-visa": openLeadModal({ kind: "visa", id: t.dataset.visaId }); break;
       case "close-lead":    closeLeadModal(); break;
     }
   });
@@ -439,5 +545,16 @@
   });
 
   // ---------- init ----------
-  goHome();
+
+  (async function init() {
+    // Render fallback immediately so the screen isn't blank during fetch.
+    goHome();
+    await fetchContent();
+    // Re-render current screen if it's data-driven.
+    if (state.screen === "category" && state.activeCategory === "visa") {
+      contentEl.innerHTML = viewCategory("visa");
+    } else if (state.screen === "visa") {
+      contentEl.innerHTML = viewVisaDetail(state.activeVisa);
+    }
+  })();
 })();

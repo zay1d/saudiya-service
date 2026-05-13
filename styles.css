@@ -514,6 +514,78 @@ body {
   background: var(--line-20);
 }
 
+/* visa list specifics */
+.visa-emoji { font-size: 14px; margin-right: 4px; vertical-align: middle; }
+.pkg-row .visa-price {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--cream);
+  line-height: 1;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+/* visa detail: warning lines + price block */
+.warn-list {
+  padding: 4px 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(148, 90, 50, 0.12);
+  border: 1px solid rgba(184, 115, 51, 0.25);
+  border-radius: 8px;
+  color: var(--cream-dim);
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.warn .ico {
+  color: var(--copper);
+  flex: 0 0 18px;
+  padding-top: 2px;
+}
+
+.visa-price-block {
+  padding: 22px 28px 4px;
+  margin-top: 8px;
+  border-bottom: 1px solid var(--line-12);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.visa-price-block .lbl {
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 400;
+}
+.visa-price-block .v {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 34px;
+  color: var(--cream);
+  line-height: 1;
+  margin-top: 8px;
+}
+.visa-price-block .v em {
+  font-style: normal;
+  font-family: var(--sans);
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+
 /* ============ PACKAGE DETAIL ============ */
 
 .detail-head {
