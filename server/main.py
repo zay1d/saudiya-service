@@ -131,7 +131,7 @@ def verify_init_data(init_data: str, bot_token: str) -> Optional[dict]:
     return parsed
 
 
-# ====================  Telegram send helper  ====================
+# ====================  Telegram send helpers  ====================
 
 API_BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
@@ -149,9 +149,81 @@ async def tg_send_message(chat_id: str | int, text: str, *, parse_mode: str = "H
         return r.json()
 
 
+async def tg_send_photo(chat_id: str | int, file_id: str, caption: str) -> dict:
+    async with httpx.AsyncClient(timeout=20) as client:
+        r = await client.post(f"{API_BASE}/sendPhoto", json={
+            "chat_id": chat_id,
+            "photo": file_id,
+            "caption": caption,
+            "parse_mode": "HTML",
+        })
+        if r.status_code != 200:
+            log.warning("sendPhoto failed: %s %s", r.status_code, r.text[:200])
+        return r.json()
+
+
+async def tg_send_document(chat_id: str | int, file_id: str, caption: str) -> dict:
+    async with httpx.AsyncClient(timeout=20) as client:
+        r = await client.post(f"{API_BASE}/sendDocument", json={
+            "chat_id": chat_id,
+            "document": file_id,
+            "caption": caption,
+            "parse_mode": "HTML",
+        })
+        if r.status_code != 200:
+            log.warning("sendDocument failed: %s %s", r.status_code, r.text[:200])
+        return r.json()
+
+
 async def send_to_admins(text: str) -> None:
     for chat_id in ADMIN_CHAT_IDS:
         await tg_send_message(chat_id, text)
+
+
+async def forward_visa_application(state: dict, user: dict, file_id: str, kind: str) -> None:
+    """Send the captured passport to every admin chat with a structured caption."""
+    handle = (
+        f"@{user['username']}" if user.get("username")
+        else (f"{user.get('first_name', '')} {user.get('last_name', '')}".strip() or "—")
+    )
+    caption_lines = [
+        "🛂 <b>Yangi viza arizasi</b>",
+        "",
+        f"<b>Viza:</b> {_h(state['visa_title'])}"
+        + (f" (${state['visa_price']})" if state.get("visa_price") else ""),
+        f"<b>Ism:</b> {_h(state['name'])}",
+        f"<b>Telegram:</b> {_h(handle)} <code>(id: {user.get('id')})</code>",
+    ]
+    caption = "\n".join(caption_lines)
+    for admin_id in ADMIN_CHAT_IDS:
+        if kind == "photo":
+            await tg_send_photo(admin_id, file_id, caption)
+        else:
+            await tg_send_document(admin_id, file_id, caption)
+
+
+# ====================  Bot identity (auto-fetched)  ====================
+
+BOT_USERNAME: str = os.environ.get("BOT_USERNAME", "").strip()
+
+
+async def fetch_bot_identity() -> None:
+    """Look up our own username via getMe so the Mini App can build deep links."""
+    global BOT_USERNAME
+    if BOT_USERNAME:
+        log.info("bot username (from env): @%s", BOT_USERNAME)
+        return
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(f"{API_BASE}/getMe")
+            data = r.json()
+            if data.get("ok"):
+                uname = data["result"].get("username", "")
+                if uname:
+                    BOT_USERNAME = uname
+                    log.info("bot username (from getMe): @%s", BOT_USERNAME)
+    except Exception:
+        log.exception("getMe failed")
 
 
 # ====================  Lead form  ====================
@@ -270,27 +342,146 @@ async def _cmd_toggle(args: list[str]) -> str:
     return f"<b>{_h(found['title'])}</b> {state}"
 
 
+# ====================  Visa purchase flow (per-user state machine) ====================
+
+# In-memory map of chat_id -> conversation state.
+# Lost on service restart; that's fine — short-lived conversations.
+_visa_flow: dict[int, dict] = {}
+_FLOW_TTL = 30 * 60  # 30 minutes
+
+
+def _gc_flow() -> None:
+    now = time.time()
+    expired = [k for k, v in _visa_flow.items() if now - v.get("started_at", 0) > _FLOW_TTL]
+    for k in expired:
+        _visa_flow.pop(k, None)
+
+
+async def _start_visa_flow(chat_id: int, visa_id: str) -> bool:
+    content = await load_content()
+    visa = next(
+        (v for v in content.get("visas", []) if v["id"] == visa_id and v.get("active", True)),
+        None,
+    )
+    if not visa:
+        return False
+    _visa_flow[chat_id] = {
+        "step": "awaiting_name",
+        "visa_id": visa_id,
+        "visa_title": visa["title"],
+        "visa_price": visa.get("price"),
+        "started_at": time.time(),
+    }
+    await tg_send_message(
+        chat_id,
+        f"<b>{_h(visa['title'])}</b> uchun ariza ochildi.\n\n"
+        f"Davom etish uchun <b>ism va familiyangizni</b> yuboring.\n"
+        f"<i>Masalan: Ali Karimov</i>\n\n"
+        f"Bekor qilish uchun /cancel",
+    )
+    return True
+
+
+async def _handle_user_message(chat_id: int, msg: dict, user: dict) -> None:
+    """Non-admin: visa purchase flow only. Everything else gets a hint."""
+    text = (msg.get("text") or "").strip()
+    photo = msg.get("photo")          # list of PhotoSize, largest at the end
+    document = msg.get("document")    # if user sent a file rather than a photo
+
+    # /start with optional deep-link payload (visa_<id>)
+    if text.startswith("/start"):
+        parts = text.split(maxsplit=1)
+        if len(parts) == 2:
+            payload = parts[1].strip()
+            if payload.startswith("visa_"):
+                visa_id = payload[len("visa_"):]
+                ok = await _start_visa_flow(chat_id, visa_id)
+                if not ok:
+                    await tg_send_message(chat_id,
+                        "Bu viza hozir mavjud emas. "
+                        "Iltimos, Mini App orqali boshqa viza tanlang.")
+                return
+        # plain /start
+        await tg_send_message(chat_id, WELCOME_USER)
+        return
+
+    if text == "/cancel":
+        if _visa_flow.pop(chat_id, None):
+            await tg_send_message(chat_id, "Ariza bekor qilindi. Yangi ariza uchun Mini App orqali viza tanlang.")
+        else:
+            await tg_send_message(chat_id, "Bekor qiladigan ariza yo‘q.")
+        return
+
+    _gc_flow()
+    state = _visa_flow.get(chat_id)
+    if not state:
+        # No active flow → polite nudge back to Mini App.
+        await tg_send_message(chat_id,
+            "Viza arizasini boshlash uchun Mini App orqali viza tanlang va "
+            "<b>Xarid qilish</b> tugmasini bosing.")
+        return
+
+    if state["step"] == "awaiting_name":
+        if not text:
+            await tg_send_message(chat_id,
+                "Iltimos, ism va familiyangizni <b>matn ko‘rinishida</b> yuboring.")
+            return
+        if len(text) < 2 or len(text) > 200:
+            await tg_send_message(chat_id, "Ism juda qisqa yoki juda uzun. Qayta yuboring.")
+            return
+        state["name"] = text
+        state["step"] = "awaiting_passport"
+        await tg_send_message(chat_id,
+            f"Rahmat, <b>{_h(text)}</b>.\n\n"
+            f"Endi <b>pasportingizning asosiy sahifa rasmini</b> yuboring 📷\n"
+            f"<i>(rasm yoki fayl shaklida)</i>")
+        return
+
+    if state["step"] == "awaiting_passport":
+        if photo:
+            file_id = photo[-1]["file_id"]  # largest size
+            await forward_visa_application(state, user, file_id, kind="photo")
+        elif document:
+            file_id = document["file_id"]
+            await forward_visa_application(state, user, file_id, kind="document")
+        else:
+            await tg_send_message(chat_id,
+                "Pasport <b>rasmini</b> yuboring 📷\n"
+                "<i>(yoki fayl sifatida — ikkalasi ham bo‘ladi)</i>")
+            return
+
+        _visa_flow.pop(chat_id, None)
+        await tg_send_message(chat_id,
+            "✓ Sizning so‘rovingiz qabul qilindi.\n\n"
+            "Menejer 24 soat ichida siz bilan bog‘lanadi, "
+            "<i>inshaAllah</i>.")
+        return
+
+
 async def handle_update(update: dict) -> None:
     msg = update.get("message") or update.get("edited_message")
     if not msg:
         return
     chat = msg.get("chat", {})
     chat_id = chat.get("id")
-    text = (msg.get("text") or "").strip()
-    if chat_id is None or not text:
+    user = msg.get("from", {})
+    if chat_id is None:
         return
 
+    text = (msg.get("text") or "").strip()
     is_admin = str(chat_id) in ADMIN_CHAT_IDS
 
-    # Non-admin: a friendly /start, ignore the rest for now.
+    # Non-admin: only the visa purchase flow.
     if not is_admin:
-        if text.startswith("/start"):
-            await tg_send_message(chat_id, WELCOME_USER)
+        await _handle_user_message(chat_id, msg, user)
         return
 
-    # ---- admin commands ----
+    # Admin only handles commands; everything else is silently ignored.
+    if not text:
+        return
+
     parts = text.split()
-    cmd = parts[0].lower().split("@", 1)[0]  # strip "@botname"
+    cmd = parts[0].lower().split("@", 1)[0]  # strip @botname
     args = parts[1:]
 
     if cmd in ("/help", "/start"):
@@ -351,6 +542,7 @@ async def poll_telegram_updates(stop_event: asyncio.Event) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     _ensure_content_file()
+    asyncio.create_task(fetch_bot_identity())
     stop_event = asyncio.Event()
     task = asyncio.create_task(poll_telegram_updates(stop_event))
     try:
@@ -389,7 +581,10 @@ async def get_content():
         if row.get("active", True)
     ]
     return JSONResponse(
-        {"visas": visas},
+        {
+            "visas": visas,
+            "bot": {"username": BOT_USERNAME or ""},
+        },
         headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
     )
 

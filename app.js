@@ -20,6 +20,8 @@
 
   // ---------- content fetch ----------
 
+  let BOT_USERNAME = "";
+
   async function fetchContent() {
     try {
       const r = await fetch(`${API_URL}/content`, { cache: "no-store" });
@@ -27,6 +29,9 @@
       const data = await r.json();
       if (Array.isArray(data.visas) && data.visas.length > 0) {
         VISAS = data.visas;
+      }
+      if (data.bot && data.bot.username) {
+        BOT_USERNAME = data.bot.username;
       }
     } catch (e) {
       console.warn("content fetch failed, using fallback", e);
@@ -213,13 +218,28 @@
         </div>
 
         <div class="cta-wrap">
-          <button class="cta" type="button" data-action="open-lead-visa" data-visa-id="${esc(v.id)}">
-            <span class="cta-eyebrow">Viza arizasini boshlash</span>
+          <button class="cta" type="button" data-action="buy-visa" data-visa-id="${esc(v.id)}">
+            <span class="cta-eyebrow">Pasport rasmini yuborish · botda</span>
             <span class="cta-main">Xarid qilish</span>
           </button>
         </div>
       </div>
     `;
+  }
+
+  // Open Telegram chat with the bot, passing a deep-link payload so
+  // the bot can identify which visa the user is buying.
+  function buyVisa(visaId) {
+    if (!BOT_USERNAME) {
+      alert("Botga ulanish vaqtincha mavjud emas. Birozdan keyin qayta urinib ko‘ring.");
+      return;
+    }
+    const link = `https://t.me/${BOT_USERNAME}?start=visa_${encodeURIComponent(visaId)}`;
+    if (tg && typeof tg.openTelegramLink === "function") {
+      tg.openTelegramLink(link);
+    } else {
+      window.open(link, "_blank");
+    }
   }
 
   function viewHotelsPlaceholder() {
@@ -528,7 +548,7 @@
       case "go-back":       goBack(); break;
       case "go-home":       goHome(); break;
       case "open-lead":     openLeadModal({ kind: "package", id: t.dataset.pkgId }); break;
-      case "open-lead-visa": openLeadModal({ kind: "visa", id: t.dataset.visaId }); break;
+      case "buy-visa":      buyVisa(t.dataset.visaId); break;
       case "close-lead":    closeLeadModal(); break;
     }
   });
