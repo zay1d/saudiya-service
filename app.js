@@ -201,7 +201,10 @@
       <div class="pkg-detail">
         <div class="detail-head">
           <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Vizalar<span class="sep">/</span>${esc(v.title)}</div>
-          <h1>${v.emoji || ""} ${esc(v.title)}</h1>
+          <div class="title-row">
+            <svg class="title-icon" width="36" height="36"><use href="#${esc(v.icon || "i-passport")}"/></svg>
+            <h1>${esc(v.title)}</h1>
+          </div>
           <div class="hairline"></div>
           <p class="lede">${esc(v.tagline || "")}</p>
         </div>
@@ -228,7 +231,8 @@
   }
 
   // Open Telegram chat with the bot, passing a deep-link payload so
-  // the bot can identify which visa the user is buying.
+  // the bot can identify which visa the user is buying. Some Telegram
+  // clients don't auto-close the Mini App, so we force it.
   function buyVisa(visaId) {
     if (!BOT_USERNAME) {
       alert("Botga ulanish vaqtincha mavjud emas. Birozdan keyin qayta urinib ko‘ring.");
@@ -237,8 +241,11 @@
     const link = `https://t.me/${BOT_USERNAME}?start=visa_${encodeURIComponent(visaId)}`;
     if (tg && typeof tg.openTelegramLink === "function") {
       tg.openTelegramLink(link);
+      setTimeout(() => {
+        if (tg && typeof tg.close === "function") tg.close();
+      }, 250);
     } else {
-      window.open(link, "_blank");
+      window.location.href = link;
     }
   }
 

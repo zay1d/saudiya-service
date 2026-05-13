@@ -709,6 +709,35 @@ body {
   letter-spacing: 0.02em;
 }
 
+/* Gold italic note shared between Umra packages and visa detail. */
+.pkg-note {
+  margin: 18px 28px 0;
+  padding: 16px 18px;
+  background: rgba(214,184,123,0.06);
+  border: 1px solid var(--line-25);
+  border-radius: 10px;
+  color: var(--gold-light);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* Visa detail headline: gold SVG icon + serif title in one row. */
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.title-row .title-icon {
+  flex: 0 0 36px;
+  color: var(--gold);
+}
+.title-row h1 {
+  margin: 0;
+}
+
 .cta-wrap { padding: 28px 28px 32px; }
 .cta {
   width: 100%;

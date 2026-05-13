@@ -720,6 +720,35 @@ body {
   letter-spacing: 0.02em;
 }
 
+/* Gold italic note shared between Umra packages and visa detail. */
+.pkg-note {
+  margin: 18px 28px 0;
+  padding: 16px 18px;
+  background: rgba(214,184,123,0.06);
+  border: 1px solid var(--line-25);
+  border-radius: 10px;
+  color: var(--gold-light);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* Visa detail headline: gold SVG icon + serif title in one row. */
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.title-row .title-icon {
+  flex: 0 0 36px;
+  color: var(--gold);
+}
+.title-row h1 {
+  margin: 0;
+}
+
 .cta-wrap { padding: 28px 28px 32px; }
 .cta {
   width: 100%;
@@ -1437,7 +1466,10 @@ let VISAS = VISAS_FALLBACK.slice();
       <div class="pkg-detail">
         <div class="detail-head">
           <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Vizalar<span class="sep">/</span>${esc(v.title)}</div>
-          <h1>${v.emoji || ""} ${esc(v.title)}</h1>
+          <div class="title-row">
+            <svg class="title-icon" width="36" height="36"><use href="#${esc(v.icon || "i-passport")}"/></svg>
+            <h1>${esc(v.title)}</h1>
+          </div>
           <div class="hairline"></div>
           <p class="lede">${esc(v.tagline || "")}</p>
         </div>
@@ -1464,7 +1496,8 @@ let VISAS = VISAS_FALLBACK.slice();
   }
 
   // Open Telegram chat with the bot, passing a deep-link payload so
-  // the bot can identify which visa the user is buying.
+  // the bot can identify which visa the user is buying. Some Telegram
+  // clients don't auto-close the Mini App, so we force it.
   function buyVisa(visaId) {
     if (!BOT_USERNAME) {
       alert("Botga ulanish vaqtincha mavjud emas. Birozdan keyin qayta urinib ko‘ring.");
@@ -1473,8 +1506,11 @@ let VISAS = VISAS_FALLBACK.slice();
     const link = `https://t.me/${BOT_USERNAME}?start=visa_${encodeURIComponent(visaId)}`;
     if (tg && typeof tg.openTelegramLink === "function") {
       tg.openTelegramLink(link);
+      setTimeout(() => {
+        if (tg && typeof tg.close === "function") tg.close();
+      }, 250);
     } else {
-      window.open(link, "_blank");
+      window.location.href = link;
     }
   }
 
