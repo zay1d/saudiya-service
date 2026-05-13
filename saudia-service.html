@@ -526,7 +526,35 @@ body {
 }
 
 /* visa list specifics */
-.visa-emoji { font-size: 14px; margin-right: 4px; vertical-align: middle; }
+.pkg-row.visa-row {
+  grid-template-columns: 40px 1fr auto;
+  gap: 4px 16px;
+  align-items: start;
+  padding: 20px 22px;
+}
+.pkg-row.visa-row .vrow-ico {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--gold);
+  padding-top: 2px;
+}
+.pkg-row.visa-row .vrow-ico svg {
+  display: block;
+}
+.pkg-row.visa-row > div:nth-of-type(1) { grid-column: 2; grid-row: 1; }
+.pkg-row.visa-row .right { grid-column: 3; grid-row: 1; }
+.pkg-row.visa-row .more { grid-column: 1 / -1; }
+
+.pkg-row.visa-row .tier {
+  color: var(--copper);
+  font-size: 9.5px;
+  letter-spacing: 0.28em;
+}
+
 .pkg-row .visa-price {
   font-family: var(--serif);
   font-weight: 400;
@@ -1342,9 +1370,10 @@ let VISAS = VISAS_FALLBACK.slice();
 
       <div class="pkg-list">
         ${VISAS.map((v) => `
-          <button class="pkg-row" data-action="open-visa" data-id="${esc(v.id)}">
+          <button class="pkg-row visa-row" data-action="open-visa" data-id="${esc(v.id)}">
+            <span class="vrow-ico"><svg width="30" height="30"><use href="#${esc(v.icon || "i-passport")}"/></svg></span>
             <div>
-              <p class="tier"><span class="visa-emoji">${v.emoji || ""}</span> ${esc(v.short || "")}</p>
+              <p class="tier">${esc(v.short || "")}</p>
               <h3>${esc(v.title)}</h3>
               <p class="sub">${esc(v.tagline || "")}</p>
             </div>

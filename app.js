@@ -147,9 +147,10 @@
 
       <div class="pkg-list">
         ${VISAS.map((v) => `
-          <button class="pkg-row" data-action="open-visa" data-id="${esc(v.id)}">
+          <button class="pkg-row visa-row" data-action="open-visa" data-id="${esc(v.id)}">
+            <span class="vrow-ico"><svg width="30" height="30"><use href="#${esc(v.icon || "i-passport")}"/></svg></span>
             <div>
-              <p class="tier"><span class="visa-emoji">${v.emoji || ""}</span> ${esc(v.short || "")}</p>
+              <p class="tier">${esc(v.short || "")}</p>
               <h3>${esc(v.title)}</h3>
               <p class="sub">${esc(v.tagline || "")}</p>
             </div>

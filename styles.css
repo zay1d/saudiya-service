@@ -515,7 +515,35 @@ body {
 }
 
 /* visa list specifics */
-.visa-emoji { font-size: 14px; margin-right: 4px; vertical-align: middle; }
+.pkg-row.visa-row {
+  grid-template-columns: 40px 1fr auto;
+  gap: 4px 16px;
+  align-items: start;
+  padding: 20px 22px;
+}
+.pkg-row.visa-row .vrow-ico {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--gold);
+  padding-top: 2px;
+}
+.pkg-row.visa-row .vrow-ico svg {
+  display: block;
+}
+.pkg-row.visa-row > div:nth-of-type(1) { grid-column: 2; grid-row: 1; }
+.pkg-row.visa-row .right { grid-column: 3; grid-row: 1; }
+.pkg-row.visa-row .more { grid-column: 1 / -1; }
+
+.pkg-row.visa-row .tier {
+  color: var(--copper);
+  font-size: 9.5px;
+  letter-spacing: 0.28em;
+}
+
 .pkg-row .visa-price {
   font-family: var(--serif);
   font-weight: 400;
