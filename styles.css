@@ -59,59 +59,61 @@ body {
   overflow: hidden;
 }
 
-/* mosque photos — hidden by default, shown per screen */
+/* Mosque photos — three real photos (Kaaba day, Haram night, Nabawi).
+   Each screen reveals exactly one of them. */
 .bg-layer .bg-photo {
   position: absolute;
   inset: 0 0 auto 0;
   width: 100%;
   height: 70%;
   object-fit: cover;
+  object-position: 50% 35%;
   opacity: 0;
-  filter: saturate(0.55) brightness(0.85) contrast(1.05);
-  transition: opacity .4s ease, object-position .4s ease;
+  filter: saturate(0.7) brightness(0.85) contrast(1.05);
+  transition: opacity .4s ease;
   z-index: 1;
 }
 
-/* HOME: Kaaba, slightly cropped down for clock-tower view */
-#app[data-screen="home"] .bg-layer .bg-kaaba {
+/* HOME — Kaaba (day) */
+#app[data-screen="home"] .bg-layer .bg-kaaba-day {
+  opacity: 0.36;
+  object-position: 50% 30%;
+}
+
+/* UMRA category list — Haram at night (atmospheric, pilgrims) */
+#app[data-category="umra"][data-screen="category"] .bg-layer .bg-haram-night {
   opacity: 0.34;
-  object-position: 50% 35%;
+  object-position: 50% 30%;
 }
 
-/* UMRA category list: Kaaba, top-anchored crop */
-#app[data-category="umra"][data-screen="category"] .bg-layer .bg-kaaba {
+/* UMRA package detail — Kaaba (day) close-up */
+#app[data-screen="package"] .bg-layer .bg-kaaba-day {
   opacity: 0.32;
-  object-position: 50% 22%;
+  object-position: 50% 55%;
 }
 
-/* UMRA package detail: Kaaba, lower crop */
-#app[data-screen="package"] .bg-layer .bg-kaaba {
-  opacity: 0.30;
-  object-position: 50% 48%;
+/* MEXMONXONALAR (Mecca-related) — Haram at night */
+#app[data-category="hotels"] .bg-layer .bg-haram-night {
+  opacity: 0.34;
+  object-position: 50% 20%;
 }
 
-/* MEXMONXONALAR (Mecca-related per client): Kaaba, side crop */
-#app[data-category="hotels"] .bg-layer .bg-kaaba {
-  opacity: 0.32;
-  object-position: 30% 40%;
-}
-
-/* VIZALAR: Masjid an-Nabawi */
+/* VIZALAR — Masjid an-Nabawi */
 #app[data-category="visa"][data-screen="category"] .bg-layer .bg-nabawi,
 #app[data-screen="visa"] .bg-layer .bg-nabawi {
+  opacity: 0.36;
+  object-position: 50% 40%;
+}
+
+/* TRANSFERLAR — Kaaba (day) */
+#app[data-category="transfer"] .bg-layer .bg-kaaba-day {
   opacity: 0.32;
-  object-position: 50% 35%;
+  object-position: 50% 65%;
 }
 
-/* TRANSFERLAR: Nabawi, side crop */
-#app[data-category="transfer"] .bg-layer .bg-nabawi {
-  opacity: 0.30;
-  object-position: 70% 45%;
-}
-
-/* ALOQA: Nabawi, low crop */
+/* ALOQA — Nabawi (different crop) */
 #app[data-category="contact"] .bg-layer .bg-nabawi {
-  opacity: 0.30;
+  opacity: 0.34;
   object-position: 50% 60%;
 }
 
