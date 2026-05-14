@@ -53,6 +53,12 @@
     window.scrollTo(0, 0);
   }
 
+  // Resolve the SVG icon for a visa. Frontend owns icon mapping so admin
+  // price edits (via bot commands) can never accidentally change the design.
+  function visaIcon(v) {
+    return (VISA_ICONS && VISA_ICONS[v.id]) || v.icon || "i-passport";
+  }
+
   // ---------- views ----------
 
   function viewHome() {
@@ -153,7 +159,7 @@
       <div class="pkg-list">
         ${VISAS.map((v) => `
           <button class="pkg-row visa-row" data-action="open-visa" data-id="${esc(v.id)}">
-            <span class="vrow-ico"><svg width="30" height="30"><use href="#${esc(v.icon || "i-passport")}"/></svg></span>
+            <span class="vrow-ico"><svg width="30" height="30"><use href="#${esc(visaIcon(v))}"/></svg></span>
             <div>
               <p class="tier">${esc(v.short || "")}</p>
               <h3>${esc(v.title)}</h3>
@@ -202,7 +208,7 @@
         <div class="detail-head">
           <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Vizalar<span class="sep">/</span>${esc(v.title)}</div>
           <div class="title-row">
-            <svg class="title-icon" width="36" height="36"><use href="#${esc(v.icon || "i-passport")}"/></svg>
+            <svg class="title-icon" width="36" height="36"><use href="#${esc(visaIcon(v))}"/></svg>
             <h1>${esc(v.title)}</h1>
           </div>
           <div class="hairline"></div>
