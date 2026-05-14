@@ -30,6 +30,9 @@
       if (Array.isArray(data.visas) && data.visas.length > 0) {
         VISAS = data.visas;
       }
+      if (Array.isArray(data.transfers) && data.transfers.length > 0) {
+        TRANSFERS = data.transfers;
+      }
       if (data.bot && data.bot.username) {
         BOT_USERNAME = data.bot.username;
       }
@@ -276,10 +279,45 @@
         <h1>Transferlar</h1>
         <div class="meta">Aeroport · Makka · Madina yo‘nalishlari</div>
       </div>
-      <div class="placeholder">
-        <p>Transport turlari va shartlari tez kunda joylanadi.<br/>Aniq taklif uchun biz bilan bog‘laning.</p>
+
+      <div class="transfer-list">
+        ${TRANSFERS.map((t) => `
+          <div class="transfer-card">
+            <div class="transfer-head">
+              <span class="vrow-ico"><svg width="30" height="30"><use href="#${esc(TRANSFER_ICONS[t.id] || "i-car")}"/></svg></span>
+              <div>
+                <p class="tier">${esc(t.short || "")}</p>
+                <h3>${esc(t.title)}</h3>
+                <p class="sub">${esc(t.tagline || "")}</p>
+              </div>
+            </div>
+
+            <div class="transfer-feats">
+              ${(t.features || []).map((f) => `
+                <div class="transfer-feat">
+                  <span class="ico"><svg width="16" height="16"><use href="#i-check"/></svg></span>
+                  <span>${esc(f)}</span>
+                </div>
+              `).join("")}
+            </div>
+
+            ${(t.extras || []).length ? `
+              <div class="transfer-extras">
+                <div class="eyebrow">Qo‘shimcha</div>
+                ${(t.extras || []).map((e) => `
+                  <div class="transfer-extra">${esc(e)}</div>
+                `).join("")}
+              </div>` : ""}
+          </div>
+        `).join("")}
       </div>
-      <div class="cta-wrap">${ctaButton()}</div>
+
+      <div class="cta-wrap">
+        <button class="cta" type="button" data-action="open-transfer-order">
+          <span class="cta-eyebrow">Yo‘nalish va sana bilan</span>
+          <span class="cta-main">Transferga buyurtma bering</span>
+        </button>
+      </div>
     `;
   }
 
@@ -404,6 +442,216 @@
       goCategory("visa");
     } else if (state.activeCategory) {
       goHome();
+    }
+  }
+
+  // ---------- transfer order modal ----------
+
+  function openTransferModal() {
+    renderTransferForm();
+    modalEl.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => {
+      const sel = modalInner.querySelector('select[name="tariff"]');
+      if (sel) sel.focus();
+    }, 240);
+  }
+
+  function renderTransferForm() {
+    const tariffOptions = TRANSFERS.map(
+      (t) => `<option value="${esc(t.id)}">${esc(t.title)}</option>`
+    ).join("");
+    const cityOptions = (defaultId) =>
+      ROUTE_CITIES.map(
+        (c) => `<option value="${esc(c.id)}"${c.id === defaultId ? " selected" : ""}>${esc(c.title)}</option>`
+      ).join("");
+
+    modalInner.innerHTML = `
+      <div class="modal-head">
+        <div class="eyebrow">Transfer · Buyurtma</div>
+        <h2 id="lead-title">Transferga buyurtma bering</h2>
+        <div class="hairline"></div>
+      </div>
+      <form id="order-form" novalidate>
+        <div class="field" data-field="tariff">
+          <label for="tr-tariff">Tarifni tanlang</label>
+          <div class="select-wrap">
+            <select id="tr-tariff" name="tariff" required>${tariffOptions}</select>
+            <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+          </div>
+        </div>
+
+        <div class="field" data-field="name">
+          <label for="tr-name">Ism va familiya</label>
+          <input id="tr-name" name="name" type="text" maxlength="100" required
+                 autocomplete="name" placeholder="Familiya Ism" />
+          <div class="err">Iltimos, ismingizni kiriting</div>
+        </div>
+
+        <div class="field" data-field="phone">
+          <label for="tr-phone">Telefon raqam</label>
+          <input id="tr-phone" name="phone" type="tel" maxlength="20" required
+                 autocomplete="tel" inputmode="tel" placeholder="+998 __ ___ __ __" />
+          <div class="err">Telefon raqamingizni to‘liq kiriting</div>
+        </div>
+
+        <div class="field" data-field="route">
+          <label>Yo‘nalish</label>
+          <div class="route-grid">
+            <div class="route-cell">
+              <div class="route-cell__lbl">Qaerdan</div>
+              <div class="select-wrap">
+                <select name="from_city">${cityOptions("jidda")}</select>
+                <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+              </div>
+            </div>
+            <div class="route-arrow">→</div>
+            <div class="route-cell">
+              <div class="route-cell__lbl">Qayerga</div>
+              <div class="select-wrap">
+                <select name="to_city">${cityOptions("makka")}</select>
+                <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+              </div>
+            </div>
+          </div>
+          <div class="err">Boshlang‘ich va manzil shaharlari bir xil bo‘lmasligi kerak</div>
+        </div>
+
+        <div class="field" data-field="date">
+          <label for="tr-date">Sana</label>
+          <input id="tr-date" name="date" type="tel" inputmode="numeric"
+                 maxlength="10" placeholder="kk/oo/yyyy" required />
+          <div class="err">Sanani to‘g‘ri formatda kiriting (kk/oo/yyyy)</div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-action="close-lead">Bekor</button>
+          <button type="submit" class="btn-primary" data-role="submit">Yuborish</button>
+        </div>
+      </form>
+    `;
+
+    const form = modalInner.querySelector("#order-form");
+    bindPhoneMask(form.querySelector('input[name="phone"]'));
+    bindDateMask(form.querySelector('input[name="date"]'));
+    form.addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      submitTransferOrder(form);
+    });
+  }
+
+  // Simple Uzbekistan phone mask: forces +998 prefix and spacing.
+  function bindPhoneMask(input) {
+    if (!input) return;
+    const format = (raw) => {
+      let v = String(raw || "").replace(/\D/g, "");
+      if (v.startsWith("998")) v = v.slice(3);
+      v = v.slice(0, 9);
+      let out = "+998";
+      if (v.length > 0) out += " " + v.slice(0, 2);
+      if (v.length > 2) out += " " + v.slice(2, 5);
+      if (v.length > 5) out += " " + v.slice(5, 7);
+      if (v.length > 7) out += " " + v.slice(7, 9);
+      return out;
+    };
+    input.addEventListener("focus", () => {
+      if (!input.value) input.value = "+998 ";
+    });
+    input.addEventListener("input", () => {
+      input.value = format(input.value);
+    });
+  }
+
+  // Bank-card style date mask: kk / oo / yyyy
+  function bindDateMask(input) {
+    if (!input) return;
+    input.addEventListener("input", () => {
+      const v = input.value.replace(/\D/g, "").slice(0, 8);
+      let out = v.slice(0, 2);
+      if (v.length > 2) out += "/" + v.slice(2, 4);
+      if (v.length > 4) out += "/" + v.slice(4, 8);
+      input.value = out;
+    });
+  }
+
+  function validDate(s) {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s || "");
+    if (!m) return false;
+    const d = +m[1], mo = +m[2], y = +m[3];
+    if (mo < 1 || mo > 12 || d < 1 || d > 31 || y < 2024 || y > 2099) return false;
+    const dt = new Date(y, mo - 1, d);
+    return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d;
+  }
+
+  async function submitTransferOrder(form) {
+    const tariffSel = form.querySelector('select[name="tariff"]');
+    const fromSel = form.querySelector('select[name="from_city"]');
+    const toSel = form.querySelector('select[name="to_city"]');
+    const nameInput = form.querySelector('input[name="name"]');
+    const phoneInput = form.querySelector('input[name="phone"]');
+    const dateInput = form.querySelector('input[name="date"]');
+    const submitBtn = form.querySelector('[data-role="submit"]');
+
+    [...form.querySelectorAll(".field")].forEach((f) => f.classList.remove("invalid"));
+
+    const name = (nameInput.value || "").trim();
+    const phone = (phoneInput.value || "").trim();
+    const date = (dateInput.value || "").trim();
+    const fromCity = fromSel.value;
+    const toCity = toSel.value;
+    const tariffId = tariffSel.value;
+    const tariff = TRANSFERS.find((t) => t.id === tariffId);
+
+    let ok = true;
+    if (!name) { form.querySelector('[data-field="name"]').classList.add("invalid"); ok = false; }
+    if (phone.replace(/\D/g, "").length < 12) {
+      form.querySelector('[data-field="phone"]').classList.add("invalid"); ok = false;
+    }
+    if (fromCity === toCity) {
+      form.querySelector('[data-field="route"]').classList.add("invalid"); ok = false;
+    }
+    if (!validDate(date)) {
+      form.querySelector('[data-field="date"]').classList.add("invalid"); ok = false;
+    }
+    if (!ok) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Yuborilmoqda…";
+
+    const initData = (tg && tg.initData) || "";
+
+    const cityTitle = (id) => (ROUTE_CITIES.find((c) => c.id === id) || {}).title || id;
+
+    try {
+      const resp = await fetch(`${API_URL}/order-transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, phone, date,
+          tariff_id: tariffId,
+          tariff_title: tariff ? tariff.title : tariffId,
+          from_city: cityTitle(fromCity),
+          to_city: cityTitle(toCity),
+          init_data: initData,
+        }),
+      });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${resp.status}`);
+      }
+      renderLeadStatus(
+        "success",
+        "Ariza qabul qilindi",
+        "Menejer tez orada Telegram orqali bog‘lanadi."
+      );
+    } catch (e) {
+      renderLeadStatus(
+        "error",
+        "Xatolik yuz berdi",
+        e && e.message
+          ? `${e.message}. Birozdan keyin qayta urinib ko‘ring.`
+          : "Tarmoq xatosi. Birozdan keyin qayta urinib ko‘ring."
+      );
     }
   }
 
@@ -562,6 +810,7 @@
       case "go-home":       goHome(); break;
       case "open-lead":     openLeadModal({ kind: "package", id: t.dataset.pkgId }); break;
       case "buy-visa":      buyVisa(t.dataset.visaId); break;
+      case "open-transfer-order": openTransferModal(); break;
       case "close-lead":    closeLeadModal(); break;
     }
   });
@@ -587,6 +836,8 @@
     // Re-render current screen if it's data-driven.
     if (state.screen === "category" && state.activeCategory === "visa") {
       contentEl.innerHTML = viewCategory("visa");
+    } else if (state.screen === "category" && state.activeCategory === "transfer") {
+      contentEl.innerHTML = viewCategory("transfer");
     } else if (state.screen === "visa") {
       contentEl.innerHTML = viewVisaDetail(state.activeVisa);
     }

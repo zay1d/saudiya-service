@@ -821,6 +821,178 @@ body {
   color: var(--cream-dim);
 }
 
+/* ============ TRANSFER CARDS ============ */
+
+.transfer-list {
+  padding: 16px 22px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.transfer-card {
+  background: rgba(56, 40, 24, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--line-20);
+  border-radius: 14px;
+  padding: 20px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.transfer-head {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 4px 14px;
+  align-items: start;
+}
+.transfer-head .vrow-ico {
+  width: 40px; height: 40px;
+  color: var(--gold);
+  display: grid; place-items: center;
+  padding-top: 2px;
+}
+.transfer-head h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--cream);
+  margin: 6px 0 6px;
+}
+.transfer-head .tier {
+  font-size: 9.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--copper);
+  margin: 0;
+  font-weight: 500;
+}
+.transfer-head .sub {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.transfer-feats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line-12);
+}
+.transfer-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 8px;
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--cream);
+  line-height: 1.3;
+}
+.transfer-feat .ico {
+  color: var(--gold);
+  flex: 0 0 16px;
+  padding-top: 3px;
+}
+
+.transfer-extras {
+  padding-top: 6px;
+  border-top: 1px dashed var(--line-12);
+}
+.transfer-extras .eyebrow {
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.transfer-extra {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--cream-dim);
+  padding: 4px 0;
+  position: relative;
+  padding-left: 14px;
+  line-height: 1.35;
+}
+.transfer-extra::before {
+  content: "·";
+  position: absolute;
+  left: 4px;
+  color: var(--gold);
+  font-size: 18px;
+  line-height: 1;
+  top: 2px;
+}
+
+/* ============ TRANSFER ORDER FORM ============ */
+
+.modal .select-wrap {
+  position: relative;
+}
+.modal .select-wrap select {
+  width: 100%;
+  background: rgba(26, 19, 12, 0.7);
+  border: 1px solid var(--line-12);
+  border-radius: 6px;
+  padding: 14px 38px 14px 16px;
+  color: var(--cream);
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease;
+}
+.modal .select-wrap select:focus {
+  border-color: var(--gold);
+  background: rgba(26, 19, 12, 0.9);
+}
+.modal .select-wrap .select-caret {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+  color: var(--gold);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.route-grid {
+  display: grid;
+  grid-template-columns: 1fr 20px 1fr;
+  align-items: end;
+  gap: 8px;
+}
+.route-cell__lbl {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.route-cell .select-wrap select {
+  padding: 12px 30px 12px 12px;
+  font-size: 15px;
+}
+.route-arrow {
+  text-align: center;
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--gold);
+  padding-bottom: 10px;
+}
+
 /* ============ LEAD MODAL ============ */
 
 .modal-overlay {
@@ -1107,6 +1279,7 @@ body {
         <symbol id="i-plane" viewBox="0 0 24 24"><path d="M3 14 L21 8 L19 13 L11 14 L8 19 L7 19 L8 14 L4 13 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
         <symbol id="i-hotel" viewBox="0 0 24 24"><path d="M3 20 L21 20" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M4 20 L4 9 L20 9 L20 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M4 9 L12 4 L20 9" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M9 20 L9 14 L15 14 L15 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></symbol>
         <symbol id="i-bus" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M4 12 L20 12 M8 5 L8 17 M16 5 L16 17" stroke="currentColor" stroke-width="1.1"/><circle cx="8" cy="19" r="1.2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="16" cy="19" r="1.2" fill="none" stroke="currentColor" stroke-width="1.1"/></symbol>
+        <symbol id="i-train" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="1.1"/><rect x="7" y="7" width="10" height="4.5" fill="none" stroke="currentColor" stroke-width="1"/><path d="M5 14 L19 14" stroke="currentColor" stroke-width="1"/><circle cx="9" cy="15.5" r="0.6" fill="currentColor"/><circle cx="15" cy="15.5" r="0.6" fill="currentColor"/><path d="M7 17 L4 21 M17 17 L20 21" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/></symbol>
         <symbol id="i-car" viewBox="0 0 24 24"><path d="M3 14 L4 9 C 4.5 7, 5.5 6, 8 6 L 16 6 C 18.5 6, 19.5 7, 20 9 L 21 14 L 21 18 L 3 18 Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.5" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="17" cy="18" r="1.5" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M3 14 L21 14" stroke="currentColor" stroke-width="1.1"/></symbol>
         <symbol id="i-guide" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M5 21 C 5 16, 8 14, 12 14 C 16 14, 19 16, 19 21" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
         <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M3 19 C 3 16, 5 14.5, 9 14.5 C 13 14.5, 15 16, 15 19" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><circle cx="17" cy="9.5" r="2.3" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M14.5 19 C 14.5 17, 16 16, 17 16 C 19 16, 20.5 17, 20.5 19" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol>
@@ -1273,6 +1446,76 @@ const VISAS_FALLBACK = [
 // Live data, populated by app.js after the /api/content fetch.
 let VISAS = VISAS_FALLBACK.slice();
 
+// ===== Transfers =====
+// Icons are frontend-owned just like visas.
+const TRANSFER_ICONS = {
+  bus:   "i-bus",
+  gmc:   "i-car",
+  train: "i-train",
+};
+
+const TRANSFERS_FALLBACK = [
+  {
+    id: "bus",
+    title: "Avtobus",
+    tagline: "47 / 49 / 50 o‘rinli · Ekonom va Standart tariflar",
+    short: "2025 / 2026 / 2027 yil avtobuslar",
+    features: [
+      "Aeroportdan kutib olish / kuzatish",
+      "Makka ↔ Madina transfer",
+      "Ziyoratlar (2 marta)",
+    ],
+    extras: [
+      "Toif safari",
+      "Masjid Rajihiy",
+      "Miqot ziyoratlari",
+      "Maxsus ziyoratlar (buyurtma asosida)",
+    ],
+  },
+  {
+    id: "gmc",
+    title: "GMC / Kia Carnival",
+    tagline: "VIP / Comfort · oilaviy va kichik guruhlar (4–7 kishi)",
+    short: "Premium transfer xizmati",
+    features: [
+      "Aeroport VIP kutib olish / kuzatish",
+      "Makka ↔ Madina komfort transfer",
+      "Shaxsiy ziyorat (individual marshrut)",
+      "Tajribali haydovchi",
+    ],
+    extras: [
+      "Tez va xavfsiz harakat",
+      "Toza va yangi avtomobillar",
+      "To‘liq qulaylik va maxfiylik",
+    ],
+  },
+  {
+    id: "train",
+    title: "Haramain tezkor poyezd",
+    tagline: "Eng tez va qulay transfer · Makka ↔ Madina (~2.5 soat)",
+    short: "Zamonaviy va komfort vagonlar",
+    features: [
+      "Bilet bron qilish",
+      "Vokzalga yetkazib qo‘yish",
+      "Bagaj bilan yordam",
+      "Vokzaldan mehmonxonaga transfer (qo‘shimcha)",
+    ],
+    extras: [
+      "Tirbandliksiz va tez",
+      "Aniq vaqt bo‘yicha harakat",
+    ],
+  },
+];
+
+let TRANSFERS = TRANSFERS_FALLBACK.slice();
+
+// Cities offered in the route picker.
+const ROUTE_CITIES = [
+  { id: "makka",  title: "Makka" },
+  { id: "madina", title: "Madina" },
+  { id: "jidda",  title: "Jidda" },
+];
+
 </script>
   <script>
 (function () {
@@ -1306,6 +1549,9 @@ let VISAS = VISAS_FALLBACK.slice();
       const data = await r.json();
       if (Array.isArray(data.visas) && data.visas.length > 0) {
         VISAS = data.visas;
+      }
+      if (Array.isArray(data.transfers) && data.transfers.length > 0) {
+        TRANSFERS = data.transfers;
       }
       if (data.bot && data.bot.username) {
         BOT_USERNAME = data.bot.username;
@@ -1553,10 +1799,45 @@ let VISAS = VISAS_FALLBACK.slice();
         <h1>Transferlar</h1>
         <div class="meta">Aeroport · Makka · Madina yo‘nalishlari</div>
       </div>
-      <div class="placeholder">
-        <p>Transport turlari va shartlari tez kunda joylanadi.<br/>Aniq taklif uchun biz bilan bog‘laning.</p>
+
+      <div class="transfer-list">
+        ${TRANSFERS.map((t) => `
+          <div class="transfer-card">
+            <div class="transfer-head">
+              <span class="vrow-ico"><svg width="30" height="30"><use href="#${esc(TRANSFER_ICONS[t.id] || "i-car")}"/></svg></span>
+              <div>
+                <p class="tier">${esc(t.short || "")}</p>
+                <h3>${esc(t.title)}</h3>
+                <p class="sub">${esc(t.tagline || "")}</p>
+              </div>
+            </div>
+
+            <div class="transfer-feats">
+              ${(t.features || []).map((f) => `
+                <div class="transfer-feat">
+                  <span class="ico"><svg width="16" height="16"><use href="#i-check"/></svg></span>
+                  <span>${esc(f)}</span>
+                </div>
+              `).join("")}
+            </div>
+
+            ${(t.extras || []).length ? `
+              <div class="transfer-extras">
+                <div class="eyebrow">Qo‘shimcha</div>
+                ${(t.extras || []).map((e) => `
+                  <div class="transfer-extra">${esc(e)}</div>
+                `).join("")}
+              </div>` : ""}
+          </div>
+        `).join("")}
       </div>
-      <div class="cta-wrap">${ctaButton()}</div>
+
+      <div class="cta-wrap">
+        <button class="cta" type="button" data-action="open-transfer-order">
+          <span class="cta-eyebrow">Yo‘nalish va sana bilan</span>
+          <span class="cta-main">Transferga buyurtma bering</span>
+        </button>
+      </div>
     `;
   }
 
@@ -1681,6 +1962,216 @@ let VISAS = VISAS_FALLBACK.slice();
       goCategory("visa");
     } else if (state.activeCategory) {
       goHome();
+    }
+  }
+
+  // ---------- transfer order modal ----------
+
+  function openTransferModal() {
+    renderTransferForm();
+    modalEl.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => {
+      const sel = modalInner.querySelector('select[name="tariff"]');
+      if (sel) sel.focus();
+    }, 240);
+  }
+
+  function renderTransferForm() {
+    const tariffOptions = TRANSFERS.map(
+      (t) => `<option value="${esc(t.id)}">${esc(t.title)}</option>`
+    ).join("");
+    const cityOptions = (defaultId) =>
+      ROUTE_CITIES.map(
+        (c) => `<option value="${esc(c.id)}"${c.id === defaultId ? " selected" : ""}>${esc(c.title)}</option>`
+      ).join("");
+
+    modalInner.innerHTML = `
+      <div class="modal-head">
+        <div class="eyebrow">Transfer · Buyurtma</div>
+        <h2 id="lead-title">Transferga buyurtma bering</h2>
+        <div class="hairline"></div>
+      </div>
+      <form id="order-form" novalidate>
+        <div class="field" data-field="tariff">
+          <label for="tr-tariff">Tarifni tanlang</label>
+          <div class="select-wrap">
+            <select id="tr-tariff" name="tariff" required>${tariffOptions}</select>
+            <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+          </div>
+        </div>
+
+        <div class="field" data-field="name">
+          <label for="tr-name">Ism va familiya</label>
+          <input id="tr-name" name="name" type="text" maxlength="100" required
+                 autocomplete="name" placeholder="Familiya Ism" />
+          <div class="err">Iltimos, ismingizni kiriting</div>
+        </div>
+
+        <div class="field" data-field="phone">
+          <label for="tr-phone">Telefon raqam</label>
+          <input id="tr-phone" name="phone" type="tel" maxlength="20" required
+                 autocomplete="tel" inputmode="tel" placeholder="+998 __ ___ __ __" />
+          <div class="err">Telefon raqamingizni to‘liq kiriting</div>
+        </div>
+
+        <div class="field" data-field="route">
+          <label>Yo‘nalish</label>
+          <div class="route-grid">
+            <div class="route-cell">
+              <div class="route-cell__lbl">Qaerdan</div>
+              <div class="select-wrap">
+                <select name="from_city">${cityOptions("jidda")}</select>
+                <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+              </div>
+            </div>
+            <div class="route-arrow">→</div>
+            <div class="route-cell">
+              <div class="route-cell__lbl">Qayerga</div>
+              <div class="select-wrap">
+                <select name="to_city">${cityOptions("makka")}</select>
+                <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+              </div>
+            </div>
+          </div>
+          <div class="err">Boshlang‘ich va manzil shaharlari bir xil bo‘lmasligi kerak</div>
+        </div>
+
+        <div class="field" data-field="date">
+          <label for="tr-date">Sana</label>
+          <input id="tr-date" name="date" type="tel" inputmode="numeric"
+                 maxlength="10" placeholder="kk/oo/yyyy" required />
+          <div class="err">Sanani to‘g‘ri formatda kiriting (kk/oo/yyyy)</div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-action="close-lead">Bekor</button>
+          <button type="submit" class="btn-primary" data-role="submit">Yuborish</button>
+        </div>
+      </form>
+    `;
+
+    const form = modalInner.querySelector("#order-form");
+    bindPhoneMask(form.querySelector('input[name="phone"]'));
+    bindDateMask(form.querySelector('input[name="date"]'));
+    form.addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      submitTransferOrder(form);
+    });
+  }
+
+  // Simple Uzbekistan phone mask: forces +998 prefix and spacing.
+  function bindPhoneMask(input) {
+    if (!input) return;
+    const format = (raw) => {
+      let v = String(raw || "").replace(/\D/g, "");
+      if (v.startsWith("998")) v = v.slice(3);
+      v = v.slice(0, 9);
+      let out = "+998";
+      if (v.length > 0) out += " " + v.slice(0, 2);
+      if (v.length > 2) out += " " + v.slice(2, 5);
+      if (v.length > 5) out += " " + v.slice(5, 7);
+      if (v.length > 7) out += " " + v.slice(7, 9);
+      return out;
+    };
+    input.addEventListener("focus", () => {
+      if (!input.value) input.value = "+998 ";
+    });
+    input.addEventListener("input", () => {
+      input.value = format(input.value);
+    });
+  }
+
+  // Bank-card style date mask: kk / oo / yyyy
+  function bindDateMask(input) {
+    if (!input) return;
+    input.addEventListener("input", () => {
+      const v = input.value.replace(/\D/g, "").slice(0, 8);
+      let out = v.slice(0, 2);
+      if (v.length > 2) out += "/" + v.slice(2, 4);
+      if (v.length > 4) out += "/" + v.slice(4, 8);
+      input.value = out;
+    });
+  }
+
+  function validDate(s) {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s || "");
+    if (!m) return false;
+    const d = +m[1], mo = +m[2], y = +m[3];
+    if (mo < 1 || mo > 12 || d < 1 || d > 31 || y < 2024 || y > 2099) return false;
+    const dt = new Date(y, mo - 1, d);
+    return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d;
+  }
+
+  async function submitTransferOrder(form) {
+    const tariffSel = form.querySelector('select[name="tariff"]');
+    const fromSel = form.querySelector('select[name="from_city"]');
+    const toSel = form.querySelector('select[name="to_city"]');
+    const nameInput = form.querySelector('input[name="name"]');
+    const phoneInput = form.querySelector('input[name="phone"]');
+    const dateInput = form.querySelector('input[name="date"]');
+    const submitBtn = form.querySelector('[data-role="submit"]');
+
+    [...form.querySelectorAll(".field")].forEach((f) => f.classList.remove("invalid"));
+
+    const name = (nameInput.value || "").trim();
+    const phone = (phoneInput.value || "").trim();
+    const date = (dateInput.value || "").trim();
+    const fromCity = fromSel.value;
+    const toCity = toSel.value;
+    const tariffId = tariffSel.value;
+    const tariff = TRANSFERS.find((t) => t.id === tariffId);
+
+    let ok = true;
+    if (!name) { form.querySelector('[data-field="name"]').classList.add("invalid"); ok = false; }
+    if (phone.replace(/\D/g, "").length < 12) {
+      form.querySelector('[data-field="phone"]').classList.add("invalid"); ok = false;
+    }
+    if (fromCity === toCity) {
+      form.querySelector('[data-field="route"]').classList.add("invalid"); ok = false;
+    }
+    if (!validDate(date)) {
+      form.querySelector('[data-field="date"]').classList.add("invalid"); ok = false;
+    }
+    if (!ok) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Yuborilmoqda…";
+
+    const initData = (tg && tg.initData) || "";
+
+    const cityTitle = (id) => (ROUTE_CITIES.find((c) => c.id === id) || {}).title || id;
+
+    try {
+      const resp = await fetch(`${API_URL}/order-transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, phone, date,
+          tariff_id: tariffId,
+          tariff_title: tariff ? tariff.title : tariffId,
+          from_city: cityTitle(fromCity),
+          to_city: cityTitle(toCity),
+          init_data: initData,
+        }),
+      });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${resp.status}`);
+      }
+      renderLeadStatus(
+        "success",
+        "Ariza qabul qilindi",
+        "Menejer tez orada Telegram orqali bog‘lanadi."
+      );
+    } catch (e) {
+      renderLeadStatus(
+        "error",
+        "Xatolik yuz berdi",
+        e && e.message
+          ? `${e.message}. Birozdan keyin qayta urinib ko‘ring.`
+          : "Tarmoq xatosi. Birozdan keyin qayta urinib ko‘ring."
+      );
     }
   }
 
@@ -1839,6 +2330,7 @@ let VISAS = VISAS_FALLBACK.slice();
       case "go-home":       goHome(); break;
       case "open-lead":     openLeadModal({ kind: "package", id: t.dataset.pkgId }); break;
       case "buy-visa":      buyVisa(t.dataset.visaId); break;
+      case "open-transfer-order": openTransferModal(); break;
       case "close-lead":    closeLeadModal(); break;
     }
   });
@@ -1864,6 +2356,8 @@ let VISAS = VISAS_FALLBACK.slice();
     // Re-render current screen if it's data-driven.
     if (state.screen === "category" && state.activeCategory === "visa") {
       contentEl.innerHTML = viewCategory("visa");
+    } else if (state.screen === "category" && state.activeCategory === "transfer") {
+      contentEl.innerHTML = viewCategory("transfer");
     } else if (state.screen === "visa") {
       contentEl.innerHTML = viewVisaDetail(state.activeVisa);
     }

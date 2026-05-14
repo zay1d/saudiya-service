@@ -571,22 +571,82 @@ async def health():
     return {"ok": True, "admins": len(ADMIN_CHAT_IDS)}
 
 
+def _strip_internal(row: dict) -> dict:
+    return {k: v for k, v in row.items() if not k.startswith("_")}
+
+
 @app.get("/api/content")
 async def get_content():
     content = await load_content()
-    # Hide internal/admin fields from the public payload.
-    visas = [
-        {k: v for k, v in row.items() if not k.startswith("_") and row.get("active", True)}
-        for row in content.get("visas", [])
-        if row.get("active", True)
-    ]
+    visas = [_strip_internal(r) for r in content.get("visas", []) if r.get("active", True)]
+    transfers = [_strip_internal(r) for r in content.get("transfers", []) if r.get("active", True)]
     return JSONResponse(
         {
             "visas": visas,
+            "transfers": transfers,
             "bot": {"username": BOT_USERNAME or ""},
         },
         headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
     )
+
+
+class TransferOrderIn(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    phone: str = Field(..., min_length=6, max_length=30)
+    tariff_id: str = Field(default="", max_length=50)
+    tariff_title: str = Field(default="", max_length=120)
+    from_city: str = Field(..., min_length=1, max_length=60)
+    to_city: str = Field(..., min_length=1, max_length=60)
+    date: str = Field(..., min_length=8, max_length=20)
+    init_data: str = Field(..., max_length=4000)
+
+
+@app.post("/api/order-transfer")
+async def submit_transfer_order(order: TransferOrderIn):
+    parsed = verify_init_data(order.init_data, BOT_TOKEN)
+    if parsed is None:
+        log.info("transfer rejected: invalid initData")
+        raise HTTPException(status_code=403, detail="invalid initData")
+
+    try:
+        user = json.loads(parsed.get("user", "{}"))
+    except json.JSONDecodeError:
+        user = {}
+
+    tg_id = user.get("id")
+    if tg_id is None:
+        raise HTTPException(status_code=400, detail="user not found in initData")
+
+    if _rate_limited(str(tg_id)):
+        raise HTTPException(status_code=429, detail="Iltimos, biroz kuting va qayta urinib ko‘ring")
+
+    handle = (
+        f"@{user['username']}" if user.get("username")
+        else (f"{user.get('first_name', '')} {user.get('last_name', '')}".strip() or "—")
+    )
+
+    if order.from_city.strip().lower() == order.to_city.strip().lower():
+        raise HTTPException(status_code=400, detail="Yo‘nalish noto‘g‘ri")
+
+    lines = [
+        "🚐 <b>Yangi transfer buyurtmasi</b>",
+        "",
+        f"<b>Tarif:</b> {_h(order.tariff_title or order.tariff_id)}",
+        f"<b>Yo‘nalish:</b> {_h(order.from_city)} → {_h(order.to_city)}",
+        f"<b>Sana:</b> {_h(order.date)}",
+        "",
+        f"<b>Ism:</b> {_h(order.name.strip())}",
+        f"<b>Telefon:</b> {_h(order.phone.strip())}",
+        f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>",
+    ]
+
+    try:
+        await send_to_admins("\n".join(lines))
+    except httpx.HTTPError as e:
+        log.exception("Telegram API error")
+        raise HTTPException(status_code=502, detail="Telegram'ga jo‘natishda xatolik") from e
+
+    return {"ok": True}
 
 
 @app.post("/api/lead")

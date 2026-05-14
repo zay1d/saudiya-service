@@ -123,3 +123,73 @@ const VISAS_FALLBACK = [
 
 // Live data, populated by app.js after the /api/content fetch.
 let VISAS = VISAS_FALLBACK.slice();
+
+// ===== Transfers =====
+// Icons are frontend-owned just like visas.
+const TRANSFER_ICONS = {
+  bus:   "i-bus",
+  gmc:   "i-car",
+  train: "i-train",
+};
+
+const TRANSFERS_FALLBACK = [
+  {
+    id: "bus",
+    title: "Avtobus",
+    tagline: "47 / 49 / 50 o‘rinli · Ekonom va Standart tariflar",
+    short: "2025 / 2026 / 2027 yil avtobuslar",
+    features: [
+      "Aeroportdan kutib olish / kuzatish",
+      "Makka ↔ Madina transfer",
+      "Ziyoratlar (2 marta)",
+    ],
+    extras: [
+      "Toif safari",
+      "Masjid Rajihiy",
+      "Miqot ziyoratlari",
+      "Maxsus ziyoratlar (buyurtma asosida)",
+    ],
+  },
+  {
+    id: "gmc",
+    title: "GMC / Kia Carnival",
+    tagline: "VIP / Comfort · oilaviy va kichik guruhlar (4–7 kishi)",
+    short: "Premium transfer xizmati",
+    features: [
+      "Aeroport VIP kutib olish / kuzatish",
+      "Makka ↔ Madina komfort transfer",
+      "Shaxsiy ziyorat (individual marshrut)",
+      "Tajribali haydovchi",
+    ],
+    extras: [
+      "Tez va xavfsiz harakat",
+      "Toza va yangi avtomobillar",
+      "To‘liq qulaylik va maxfiylik",
+    ],
+  },
+  {
+    id: "train",
+    title: "Haramain tezkor poyezd",
+    tagline: "Eng tez va qulay transfer · Makka ↔ Madina (~2.5 soat)",
+    short: "Zamonaviy va komfort vagonlar",
+    features: [
+      "Bilet bron qilish",
+      "Vokzalga yetkazib qo‘yish",
+      "Bagaj bilan yordam",
+      "Vokzaldan mehmonxonaga transfer (qo‘shimcha)",
+    ],
+    extras: [
+      "Tirbandliksiz va tez",
+      "Aniq vaqt bo‘yicha harakat",
+    ],
+  },
+];
+
+let TRANSFERS = TRANSFERS_FALLBACK.slice();
+
+// Cities offered in the route picker.
+const ROUTE_CITIES = [
+  { id: "makka",  title: "Makka" },
+  { id: "madina", title: "Madina" },
+  { id: "jidda",  title: "Jidda" },
+];
