@@ -598,6 +598,10 @@ class TransferOrderIn(BaseModel):
     from_city: str = Field(..., min_length=1, max_length=60)
     to_city: str = Field(..., min_length=1, max_length=60)
     date: str = Field(..., min_length=8, max_length=20)
+    booking_type: str = Field(default="individual", pattern="^(individual|group)$")
+    group_size: int = Field(default=0, ge=0, le=500)
+    organization: str = Field(default="", max_length=120)
+    comment: str = Field(default="", max_length=1000)
     init_data: str = Field(..., max_length=4000)
 
 
@@ -628,9 +632,23 @@ async def submit_transfer_order(order: TransferOrderIn):
     if order.from_city.strip().lower() == order.to_city.strip().lower():
         raise HTTPException(status_code=400, detail="Yo‘nalish noto‘g‘ri")
 
+    is_group = order.booking_type == "group"
+    if is_group and order.group_size < 2:
+        raise HTTPException(status_code=400, detail="Guruh kamida 2 kishi bo‘lishi kerak")
+
+    badge = "GURUH" if is_group else "INDIVIDUAL"
     lines = [
-        "🚐 <b>Yangi transfer buyurtmasi</b>",
+        f"🚐 <b>Yangi transfer buyurtmasi · {badge}</b>",
         "",
+    ]
+
+    if is_group:
+        if order.organization.strip():
+            lines.append(f"<b>Tashkilot:</b> {_h(order.organization.strip())}")
+        lines.append(f"<b>Kishilar soni:</b> {order.group_size}")
+        lines.append("")
+
+    lines.extend([
         f"<b>Tarif:</b> {_h(order.tariff_title or order.tariff_id)}",
         f"<b>Yo‘nalish:</b> {_h(order.from_city)} → {_h(order.to_city)}",
         f"<b>Sana:</b> {_h(order.date)}",
@@ -638,7 +656,10 @@ async def submit_transfer_order(order: TransferOrderIn):
         f"<b>Ism:</b> {_h(order.name.strip())}",
         f"<b>Telefon:</b> {_h(order.phone.strip())}",
         f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>",
-    ]
+    ])
+
+    if order.comment.strip():
+        lines += ["", "<b>Izoh:</b>", _h(order.comment.strip())]
 
     try:
         await send_to_admins("\n".join(lines))

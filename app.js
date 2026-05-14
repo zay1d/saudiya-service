@@ -472,7 +472,13 @@
         <h2 id="lead-title">Transferga buyurtma bering</h2>
         <div class="hairline"></div>
       </div>
-      <form id="order-form" novalidate>
+
+      <div class="tabs-switch" role="tablist">
+        <button type="button" class="tab-btn active" data-tab="individual" role="tab" aria-selected="true">Individual</button>
+        <button type="button" class="tab-btn"        data-tab="group"      role="tab" aria-selected="false">Guruh</button>
+      </div>
+
+      <form id="order-form" data-mode="individual" novalidate>
         <div class="field" data-field="tariff">
           <label for="tr-tariff">Tarifni tanlang</label>
           <div class="select-wrap">
@@ -493,6 +499,17 @@
           <input id="tr-phone" name="phone" type="tel" maxlength="20" required
                  autocomplete="tel" inputmode="tel" placeholder="+998 __ ___ __ __" />
           <div class="err">Telefon raqamingizni to‘liq kiriting</div>
+        </div>
+
+        <div class="field group-only" data-field="group_size">
+          <label for="tr-size">Kishilar soni</label>
+          <input id="tr-size" name="group_size" type="tel" inputmode="numeric" maxlength="4" placeholder="25" />
+          <div class="err">2 dan ko‘p sonni kiriting</div>
+        </div>
+
+        <div class="field group-only" data-field="organization">
+          <label for="tr-org">Tashkilot nomi <span class="opt">(ixtiyoriy)</span></label>
+          <input id="tr-org" name="organization" type="text" maxlength="100" placeholder="Masalan: Olmazor Travel" />
         </div>
 
         <div class="field" data-field="route">
@@ -524,6 +541,12 @@
           <div class="err">Sanani to‘g‘ri formatda kiriting (kk/oo/yyyy)</div>
         </div>
 
+        <div class="field" data-field="comment">
+          <label for="tr-comment">Qo‘shimcha izoh <span class="opt">(ixtiyoriy)</span></label>
+          <textarea id="tr-comment" name="comment" maxlength="500"
+                    placeholder="Masalan: 2 nafar bola bilan, ekonom o‘rinli"></textarea>
+        </div>
+
         <div class="modal-actions">
           <button type="button" class="btn-secondary" data-action="close-lead">Bekor</button>
           <button type="submit" class="btn-primary" data-role="submit">Yuborish</button>
@@ -534,9 +557,28 @@
     const form = modalInner.querySelector("#order-form");
     bindPhoneMask(form.querySelector('input[name="phone"]'));
     bindDateMask(form.querySelector('input[name="date"]'));
+    bindTabSwitch(form);
     form.addEventListener("submit", (ev) => {
       ev.preventDefault();
       submitTransferOrder(form);
+    });
+  }
+
+  // Toggles between Individual and Guruh modes. The form's data-mode
+  // attribute drives CSS (group-only blocks are hidden by default).
+  function bindTabSwitch(form) {
+    const buttons = modalInner.querySelectorAll(".tab-btn");
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.classList.contains("active")) return;
+        buttons.forEach((b) => {
+          b.classList.remove("active");
+          b.setAttribute("aria-selected", "false");
+        });
+        btn.classList.add("active");
+        btn.setAttribute("aria-selected", "true");
+        form.dataset.mode = btn.dataset.tab;
+      });
     });
   }
 
@@ -590,10 +632,14 @@
     const nameInput = form.querySelector('input[name="name"]');
     const phoneInput = form.querySelector('input[name="phone"]');
     const dateInput = form.querySelector('input[name="date"]');
+    const sizeInput = form.querySelector('input[name="group_size"]');
+    const orgInput = form.querySelector('input[name="organization"]');
+    const commentInput = form.querySelector('textarea[name="comment"]');
     const submitBtn = form.querySelector('[data-role="submit"]');
 
     [...form.querySelectorAll(".field")].forEach((f) => f.classList.remove("invalid"));
 
+    const mode = form.dataset.mode === "group" ? "group" : "individual";
     const name = (nameInput.value || "").trim();
     const phone = (phoneInput.value || "").trim();
     const date = (dateInput.value || "").trim();
@@ -601,6 +647,9 @@
     const toCity = toSel.value;
     const tariffId = tariffSel.value;
     const tariff = TRANSFERS.find((t) => t.id === tariffId);
+    const groupSize = parseInt(sizeInput.value || "0", 10) || 0;
+    const organization = (orgInput.value || "").trim();
+    const comment = (commentInput.value || "").trim();
 
     let ok = true;
     if (!name) { form.querySelector('[data-field="name"]').classList.add("invalid"); ok = false; }
@@ -612,6 +661,9 @@
     }
     if (!validDate(date)) {
       form.querySelector('[data-field="date"]').classList.add("invalid"); ok = false;
+    }
+    if (mode === "group" && (groupSize < 2 || groupSize > 500)) {
+      form.querySelector('[data-field="group_size"]').classList.add("invalid"); ok = false;
     }
     if (!ok) return;
 
@@ -632,6 +684,10 @@
           tariff_title: tariff ? tariff.title : tariffId,
           from_city: cityTitle(fromCity),
           to_city: cityTitle(toCity),
+          booking_type: mode,
+          group_size: mode === "group" ? groupSize : 0,
+          organization: mode === "group" ? organization : "",
+          comment,
           init_data: initData,
         }),
       });

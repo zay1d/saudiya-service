@@ -982,6 +982,50 @@ body {
   padding-bottom: 10px;
 }
 
+/* Individual / Guruh segmented tabs at the top of the order modal */
+.tabs-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--line-12);
+  margin-bottom: 22px;
+}
+.tabs-switch .tab-btn {
+  background: transparent;
+  border: none;
+  padding: 14px 8px 12px;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  transition: color .2s ease;
+}
+.tabs-switch .tab-btn:hover { color: var(--cream-dim); }
+.tabs-switch .tab-btn.active { color: var(--gold); }
+.tabs-switch .tab-btn.active::after {
+  content: "";
+  position: absolute;
+  left: 22%; right: 22%;
+  bottom: -1px;
+  height: 1px;
+  background: var(--gold);
+}
+
+/* Hide group-only fields unless the form is in group mode */
+form[data-mode="individual"] .group-only { display: none; }
+
+/* Small "(ixtiyoriy)" hint next to optional field labels */
+.modal .field label .opt {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  margin-left: 4px;
+}
+
 /* ============ LEAD MODAL ============ */
 
 .modal-overlay {
