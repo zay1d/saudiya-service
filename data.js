@@ -7,9 +7,14 @@ const CONTACT_URL = "https://t.me/";
 const CONTACT_LABEL = "Biz bilan bog‘laning";
 
 // ===== Backend API =====
-// Used by the lead form on Umra package detail screens. After buying a real
-// domain, change the host here only.
-const API_URL = "https://167-86-125-229.nip.io/api";
+// When served from the production domain, hit the API on the same origin
+// (cleaner, no CORS preflights). When previewed from Pages / local file
+// fall back to the absolute production URL.
+const API_URL = (() => {
+  const h = (typeof window !== "undefined" && window.location && window.location.hostname) || "";
+  if (h === "saudihizmat.fyi" || h === "www.saudihizmat.fyi") return "/api";
+  return "https://saudihizmat.fyi/api";
+})();
 
 // ===== Categories (home list + bottom tab bar) =====
 // `homeIcon` is the large symbol shown on the home menu rows.
