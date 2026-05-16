@@ -117,14 +117,15 @@ body {
   object-position: 50% 60%;
 }
 
-/* large blurred logo watermark — same prominence on every screen */
+/* Blurred logo watermark — centered, fits within mobile viewport */
 .bg-layer .logo-blur {
   position: absolute;
-  left: 50%; top: 38%;
-  transform: translate(-50%, -50%) scale(2.4);
-  width: 280px;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 260px;
+  max-width: 68vw;
   height: auto;
-  opacity: 0.22;
+  opacity: 0.16;
   filter: saturate(0.85) brightness(1.15) blur(0.5px);
   z-index: 2;
 }
