@@ -138,10 +138,10 @@ Each photo is full viewport (inset:0, cover) with warm gradient + paper-grain ov
 
 **Logo watermark (`.bg-layer .logo-blur`):**
 - Sits at `left: 62%, top: 50%` (slightly right of center)
-- `width: 160px` with `max-width: 45vw` cap
-- `opacity: 0.14`, `filter: blur(0.5px)`
+- `width: 230px` with `max-width: 60vw` cap
+- `opacity: 0.20`, `filter: blur(0.5px)`
 - Was historically much larger (280px × scale 2.4) which caused the wordmark to bleed off-screen.
-  Don't grow it past ~50vw.
+  Don't grow past ~65vw — the "SAUDIA SERVICE" wordmark in the PNG will start spilling.
 
 **Icon style:** flat gold line icons, `stroke-width: 1.1`, defined inline as `<symbol id="i-...">`
 in `index.html`. Each visa/transfer references its icon by id via `VISA_ICONS` / `TRANSFER_ICONS`

@@ -128,16 +128,16 @@ body {
   object-position: 50% 60%;
 }
 
-/* Blurred logo watermark — small and sits slightly right of center */
+/* Blurred logo watermark — visible but doesn't bleed past the viewport */
 .bg-layer .logo-blur {
   position: absolute;
   left: 62%; top: 50%;
   transform: translate(-50%, -50%);
-  width: 160px;
-  max-width: 45vw;
+  width: 230px;
+  max-width: 60vw;
   height: auto;
-  opacity: 0.14;
-  filter: saturate(0.85) brightness(1.15) blur(0.5px);
+  opacity: 0.20;
+  filter: saturate(0.85) brightness(1.2) blur(0.5px);
   z-index: 2;
 }
 
