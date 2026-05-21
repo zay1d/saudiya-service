@@ -120,10 +120,10 @@ body {
 /* Blurred logo watermark — visible but doesn't bleed past the viewport */
 .bg-layer .logo-blur {
   position: absolute;
-  left: 62%; top: 50%;
+  left: 50%; top: 50%;
   transform: translate(-50%, -50%);
-  width: 420px;
-  max-width: 85vw;
+  width: 500px;
+  max-width: 92vw;
   height: auto;
   opacity: 0.22;
   filter: saturate(0.85) brightness(1.2) blur(0.5px);
