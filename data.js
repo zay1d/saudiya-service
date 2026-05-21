@@ -210,16 +210,55 @@ const ROUTE_CITIES = [
 
 // ===== Hotels =====
 // Segments are rendered as section labels (Premium first; more to follow).
+// A segment is an array of groups. Each group has an optional sub-label
+// (e.g. a complex name like "Soat majmuasi") and a list of hotels.
+// Hotels with no group sit in a final unlabeled group at the bottom.
 // Each hotel: { name, stars?, distance?, note? }.
-// Sections without entries render a "Tez orada joylanadi" stub so the design
-// shows the upcoming structure to the client.
+// Empty segments render a "Tez orada joylanadi" stub.
 const HOTEL_SEGMENTS = [
   { id: "premium", label: "Premium" },
 ];
 
 const HOTELS_FALLBACK = {
-  makka:  { premium: [] },
-  madina: { premium: [] },
+  makka: {
+    premium: [
+      {
+        group: "Soat majmuasi",
+        hotels: [
+          { name: "Fermont (Gold)" },
+          { name: "Swiss Makka va Maqom" },
+          { name: "Mowenpick" },
+          { name: "Pullman Zam zam" },
+          { name: "Raffles" },
+          { name: "Rayhaan" },
+        ],
+      },
+      {
+        group: "Jabal Omer majmuasi",
+        hotels: [
+          { name: "Adress" },
+          { name: "Marriot" },
+          { name: "Jumaira" },
+          { name: "Hyatt Regency" },
+          { name: "DoubleTree by Hilton" },
+          { name: "Anjum" },
+          { name: "Shaza" },
+          { name: "Hilton Conversation" },
+          { name: "Hilton Suites" },
+          { name: "Conrad" },
+        ],
+      },
+      {
+        hotels: [
+          { name: "Dar Tavhid Intercontinental" },
+          { name: "Makkah Tower" },
+        ],
+      },
+    ],
+  },
+  madina: {
+    premium: [],
+  },
 };
 
 let HOTELS = HOTELS_FALLBACK;

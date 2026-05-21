@@ -326,14 +326,28 @@
     `;
   }
 
-  // Hotel list for one city, grouped into sections (Premium, …).
+  // Hotel list for one city, grouped into sections (Premium, …) and
+  // optionally into named sub-groups (e.g. "Soat majmuasi" complex).
   function viewHotelsList(city) {
     const cityLabel = city === "makka" ? "Makka" : "Madina";
     const cityData = (HOTELS && HOTELS[city]) || {};
 
+    const renderHotelCard = (h) => `
+      <article class="hotel-card">
+        <div class="hh">
+          <h3>${esc(h.name)}</h3>
+          ${h.stars ? `<div class="stars">${"★".repeat(h.stars)}</div>` : ""}
+        </div>
+        ${h.distance ? `<p class="hd"><span class="ico"><svg width="14" height="14"><use href="#i-mosque"/></svg></span>${esc(h.distance)}</p>` : ""}
+        ${h.note ? `<p class="hn">${esc(h.note)}</p>` : ""}
+      </article>
+    `;
+
     const sections = HOTEL_SEGMENTS.map((seg) => {
-      const items = Array.isArray(cityData[seg.id]) ? cityData[seg.id] : [];
-      if (items.length === 0) {
+      const groups = Array.isArray(cityData[seg.id]) ? cityData[seg.id] : [];
+      const total = groups.reduce((n, g) => n + ((g.hotels && g.hotels.length) || 0), 0);
+
+      if (total === 0) {
         return `
           <section class="hotel-section">
             <p class="section-label">${esc(seg.label)}</p>
@@ -341,20 +355,25 @@
           </section>
         `;
       }
-      const cards = items.map((h) => `
-        <article class="hotel-card">
-          <div class="hh">
-            <h3>${esc(h.name)}</h3>
-            ${h.stars ? `<div class="stars">${"★".repeat(h.stars)}</div>` : ""}
-          </div>
-          ${h.distance ? `<p class="hd"><span class="ico"><svg width="14" height="14"><use href="#i-mosque"/></svg></span>${esc(h.distance)}</p>` : ""}
-          ${h.note ? `<p class="hn">${esc(h.note)}</p>` : ""}
-        </article>
-      `).join("");
+
+      const groupBlocks = groups.map((g) => {
+        if (!g.hotels || g.hotels.length === 0) return "";
+        const cards = g.hotels.map(renderHotelCard).join("");
+        if (g.group) {
+          return `
+            <div class="hotel-group">
+              <p class="group-label">${esc(g.group)}</p>
+              <div class="hotel-grid">${cards}</div>
+            </div>
+          `;
+        }
+        return `<div class="hotel-group"><div class="hotel-grid">${cards}</div></div>`;
+      }).join("");
+
       return `
         <section class="hotel-section">
           <p class="section-label">${esc(seg.label)}</p>
-          <div class="hotel-grid">${cards}</div>
+          ${groupBlocks}
         </section>
       `;
     }).join("");
