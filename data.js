@@ -2,9 +2,18 @@
 // Direct Telegram link used by category-level CTAs (Vizalar, Mexmonxonalar,
 // Transferlar, Aloqa). The Umra package detail screen uses the API form below
 // instead so the admin gets a structured notification.
-// TODO: replace with the manager's @username
-const CONTACT_URL = "https://t.me/";
+const CONTACT_URL = "https://t.me/saudia_servicer";
 const CONTACT_LABEL = "Biz bilan bog‘laning";
+
+// Full contact card shown on the Aloqa screen. Phone uses tel:, the rest
+// open in a new tab. Order matters — first two render as "primary" cards.
+const CONTACTS = [
+  { kind: "phone",     label: "Telefon",            value: "+966 50 390 1777", href: "tel:+966503901777",                  icon: "i-phone",     primary: true  },
+  { kind: "telegram",  label: "Telegram",           value: "@saudia_servicer", href: "https://t.me/saudia_servicer",       icon: "i-telegram",  primary: true  },
+  { kind: "b2b",       label: "B2B kanal",          value: "t.me/saudiaservicer", href: "https://t.me/saudiaservicer",     icon: "i-broadcast", primary: false },
+  { kind: "news",      label: "Yangiliklar kanali", value: "Makka xabarlari",  href: "https://t.me/makka_xabarlari",       icon: "i-broadcast", primary: false },
+  { kind: "instagram", label: "Instagram",          value: "@saudia_servicer", href: "https://www.instagram.com/saudia_servicer", icon: "i-instagram", primary: false },
+];
 
 // ===== Backend API =====
 // When served from the production domain, hit the API on the same origin

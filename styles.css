@@ -811,6 +811,94 @@ body {
   color: var(--cream-dim);
 }
 
+/* ============ CONTACT (Aloqa) ============ */
+
+.contact-list {
+  padding: 16px 22px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.section-label {
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 28px 28px 0;
+  margin: 0;
+  font-weight: 500;
+}
+.contact-card {
+  display: grid;
+  grid-template-columns: 40px 1fr 16px;
+  align-items: center;
+  gap: 14px;
+  background: rgba(56, 40, 24, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--line-20);
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .15s ease, background .15s ease;
+}
+.contact-card:active {
+  border-color: var(--line-50);
+  background: rgba(67, 50, 31, 0.55);
+}
+.contact-card .ico {
+  width: 40px; height: 40px;
+  color: var(--gold);
+  display: grid; place-items: center;
+}
+.contact-card .ct-body { min-width: 0; }
+.contact-card .ct-eyebrow {
+  font-family: var(--sans);
+  font-size: 9.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--copper);
+  margin: 0 0 4px;
+  font-weight: 500;
+}
+.contact-card .ct-main {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--cream);
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.contact-card.primary {
+  background: rgba(67, 50, 31, 0.55);
+}
+.contact-card.primary .ct-main {
+  font-size: 20px;
+}
+.contact-card .ct-chev {
+  color: var(--gold);
+  opacity: 0.5;
+  display: grid; place-items: center;
+}
+
+.contact-foot {
+  padding: 28px 28px 32px;
+  text-align: center;
+}
+.contact-foot p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--cream-dim);
+  margin: 0;
+}
+
 /* ============ TRANSFER CARDS ============ */
 
 .transfer-list {

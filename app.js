@@ -322,16 +322,37 @@
   }
 
   function viewContact() {
+    const primary = CONTACTS.filter((c) => c.primary);
+    const extras  = CONTACTS.filter((c) => !c.primary);
+
+    const card = (c) => `
+      <a class="contact-card${c.primary ? " primary" : ""}"
+         href="${esc(c.href)}"
+         ${c.kind === "phone" ? "" : 'target="_blank" rel="noopener"'}>
+        <span class="ico"><svg width="22" height="22"><use href="#${c.icon}"/></svg></span>
+        <div class="ct-body">
+          <p class="ct-eyebrow">${esc(c.label)}</p>
+          <p class="ct-main">${esc(c.value)}</p>
+        </div>
+        <span class="ct-chev"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+      </a>
+    `;
+
     return `
       <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Aloqa</div>
       <div class="page-title">
         <h1>Biz bilan<br/>bog‘laning</h1>
         <div class="meta">Maslahatchi bilan suhbat · 24/7</div>
       </div>
-      <div class="placeholder">
-        <p>Savol, taklif yoki buyurtma uchun<br/>Telegram orqali yozing — tez orada javob beramiz.</p>
+
+      <div class="contact-list">${primary.map(card).join("")}</div>
+
+      <p class="section-label">Boshqa kanallar</p>
+      <div class="contact-list">${extras.map(card).join("")}</div>
+
+      <div class="contact-foot">
+        <p>Savol, taklif yoki buyurtma uchun har qanday kanal orqali murojaat qiling — tez orada javob beramiz.</p>
       </div>
-      <div class="cta-wrap">${ctaButton()}</div>
     `;
   }
 
