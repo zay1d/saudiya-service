@@ -361,13 +361,13 @@
         const cards = g.hotels.map(renderHotelCard).join("");
         if (g.group) {
           return `
-            <div class="hotel-group">
+            <div class="hotel-group has-group">
               <p class="group-label">${esc(g.group)}</p>
               <div class="hotel-grid">${cards}</div>
             </div>
           `;
         }
-        return `<div class="hotel-group"><div class="hotel-grid">${cards}</div></div>`;
+        return `<div class="hotel-group standalone"><div class="hotel-grid">${cards}</div></div>`;
       }).join("");
 
       return `
