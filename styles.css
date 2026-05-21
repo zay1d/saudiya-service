@@ -1003,17 +1003,30 @@ body {
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid var(--line-20);
   border-radius: 14px;
-  padding: 16px 18px 8px;
+  padding: 18px 18px 12px;
 }
 .hotel-group.has-group .group-label {
-  font-family: var(--sans);
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--cream-dim);
-  margin: 0 0 6px;
-  letter-spacing: 0.02em;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.15;
+  color: var(--cream);
+  margin: 0 0 12px;
+  letter-spacing: 0.01em;
 }
-.hotel-group.has-group .hotel-grid { gap: 0; }
+.hotel-group.has-group .hotel-grid {
+  gap: 0;
+  position: relative;
+  padding-left: 18px;
+}
+.hotel-group.has-group .hotel-grid::before {
+  content: "";
+  position: absolute;
+  left: 2px; top: 10px; bottom: 10px;
+  width: 1px;
+  background: var(--gold);
+  opacity: 0.35;
+}
 .hotel-group.has-group .hotel-card {
   background: transparent;
   backdrop-filter: none;
@@ -1021,9 +1034,12 @@ body {
   border: 0;
   border-top: 1px solid var(--line-12);
   border-radius: 0;
-  padding: 12px 0;
+  padding: 11px 0;
 }
-.hotel-group.has-group .hotel-card:first-child { padding-top: 10px; }
+.hotel-group.has-group .hotel-card:first-child {
+  padding-top: 6px;
+  border-top: 0;
+}
 .hotel-empty {
   font-family: var(--serif);
   font-style: italic;
