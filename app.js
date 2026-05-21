@@ -325,18 +325,35 @@
     const primary = CONTACTS.filter((c) => c.primary);
     const extras  = CONTACTS.filter((c) => !c.primary);
 
-    const card = (c) => `
-      <a class="contact-card${c.primary ? " primary" : ""}"
-         href="${esc(c.href)}"
-         ${c.kind === "phone" ? "" : 'target="_blank" rel="noopener"'}>
-        <span class="ico"><svg width="22" height="22"><use href="#${c.icon}"/></svg></span>
-        <div class="ct-body">
-          <p class="ct-eyebrow">${esc(c.label)}</p>
-          <p class="ct-main">${esc(c.value)}</p>
-        </div>
-        <span class="ct-chev"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
-      </a>
-    `;
+    const card = (c) => {
+      if (c.kind === "phone") {
+        return `
+          <button class="contact-card primary"
+                  type="button"
+                  data-action="tap-phone"
+                  data-num="${esc(c.value)}">
+            <span class="ico"><svg width="22" height="22"><use href="#${c.icon}"/></svg></span>
+            <div class="ct-body">
+              <p class="ct-eyebrow">${esc(c.label)}</p>
+              <p class="ct-main">${esc(c.value)}</p>
+            </div>
+            <span class="ct-chev"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+          </button>
+        `;
+      }
+      return `
+        <a class="contact-card${c.primary ? " primary" : ""}"
+           href="${esc(c.href)}"
+           target="_blank" rel="noopener">
+          <span class="ico"><svg width="22" height="22"><use href="#${c.icon}"/></svg></span>
+          <div class="ct-body">
+            <p class="ct-eyebrow">${esc(c.label)}</p>
+            <p class="ct-main">${esc(c.value)}</p>
+          </div>
+          <span class="ct-chev"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+        </a>
+      `;
+    };
 
     return `
       <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Aloqa</div>
@@ -349,10 +366,6 @@
 
       <p class="section-label">Boshqa kanallar</p>
       <div class="contact-list">${extras.map(card).join("")}</div>
-
-      <div class="contact-foot">
-        <p>Savol, taklif yoki buyurtma uchun har qanday kanal orqali murojaat qiling — tez orada javob beramiz.</p>
-      </div>
     `;
   }
 
@@ -889,8 +902,48 @@
       case "buy-visa":      buyVisa(t.dataset.visaId); break;
       case "open-transfer-order": openTransferModal(); break;
       case "close-lead":    closeLeadModal(); break;
+      case "tap-phone":     tapPhone(t.dataset.num); break;
     }
   });
+
+  // Telegram WebView blocks tel: links on most clients, so the dependable
+  // action is to copy the number and show a confirmation. We still attempt
+  // a system dial as a no-op on platforms where it fails.
+  function tapPhone(displayNum) {
+    const dialNum = String(displayNum || "").replace(/[^+\d]/g, "");
+    let copied = false;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(displayNum);
+        copied = true;
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = displayNum;
+        ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        copied = document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+    } catch (_) { /* clipboard not available */ }
+    try { window.location.href = "tel:" + dialNum; } catch (_) {}
+    showToast(copied ? `Raqam nusxalandi: ${displayNum}` : displayNum);
+  }
+
+  let toastTimer = null;
+  function showToast(msg) {
+    let el = document.getElementById("toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "toast";
+      el.className = "toast";
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+  }
 
   // close modal on overlay tap (but not when clicking the inner card)
   modalEl.addEventListener("click", (ev) => {
