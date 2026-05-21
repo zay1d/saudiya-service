@@ -16,6 +16,8 @@
     activeCategory: null,
     activePackage: null,
     activeVisa: null,
+    hotelsView: null,        // null (root) | "list" | "purchase"
+    hotelsCity: null,        // null | "makka" | "madina"
   };
 
   // ---------- content fetch ----------
@@ -115,7 +117,17 @@
         }
         body = viewVisaList();
         break;
-      case "hotels":   body = viewHotelsPlaceholder(); break;
+      case "hotels":
+        if (state.hotelsView === "purchase") {
+          body = viewHotelsPurchase();
+        } else if (state.hotelsView === "list" && state.hotelsCity) {
+          body = viewHotelsList(state.hotelsCity);
+        } else if (state.hotelsView === "list") {
+          body = viewHotelsCities();
+        } else {
+          body = viewHotelsRoot();
+        }
+        break;
       case "transfer": body = viewTransferPlaceholder(); break;
       case "contact":  body = viewContact(); break;
     }
@@ -258,15 +270,115 @@
     }
   }
 
-  function viewHotelsPlaceholder() {
+  // Root: two big buttons — "Mexmonxonalar ro'yxati" / "Xarid qilish"
+  function viewHotelsRoot() {
     return `
       <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Mexmonxonalar</div>
       <div class="page-title">
         <h1>Mexmonxonalar</h1>
         <div class="meta">Makka va Madina · Haram yaqinida</div>
       </div>
+
+      <div class="big-choice">
+        <button class="choice-card" type="button" data-action="hotels-open-list">
+          <span class="ico"><svg width="28" height="28"><use href="#i-hotel"/></svg></span>
+          <span class="label">
+            <p class="t">Mexmonxonalar ro‘yxati</p>
+            <p class="d">Makka va Madina bo‘yicha</p>
+          </span>
+          <span class="chev"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+        </button>
+        <button class="choice-card" type="button" data-action="hotels-open-purchase">
+          <span class="ico"><svg width="28" height="28"><use href="#i-bag"/></svg></span>
+          <span class="label">
+            <p class="t">Xarid qilish</p>
+            <p class="d">Maslahatchi orqali bron</p>
+          </span>
+          <span class="chev"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+        </button>
+      </div>
+    `;
+  }
+
+  // City picker: two big buttons — MAKKA / MADINA
+  function viewHotelsCities() {
+    const card = (id, label, desc) => `
+      <button class="choice-card" type="button" data-action="hotels-pick-city" data-city="${id}">
+        <span class="ico"><svg width="28" height="28"><use href="#i-mosque"/></svg></span>
+        <span class="label">
+          <p class="t">${esc(label)}</p>
+          <p class="d">${esc(desc)}</p>
+        </span>
+        <span class="chev"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+      </button>
+    `;
+    return `
+      <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Mexmonxonalar<span class="sep">/</span>Ro‘yxat</div>
+      <div class="page-title">
+        <h1>Shahar tanlang</h1>
+        <div class="meta">Mexmonxonalar Haramga yaqinligi bo‘yicha tanlangan</div>
+      </div>
+
+      <div class="big-choice">
+        ${card("makka",  "MAKKA",  "Masjid al-Haram yaqinida")}
+        ${card("madina", "MADINA", "Masjid an-Nabawiy yaqinida")}
+      </div>
+    `;
+  }
+
+  // Hotel list for one city, grouped into sections (Premium, …).
+  function viewHotelsList(city) {
+    const cityLabel = city === "makka" ? "Makka" : "Madina";
+    const cityData = (HOTELS && HOTELS[city]) || {};
+
+    const sections = HOTEL_SEGMENTS.map((seg) => {
+      const items = Array.isArray(cityData[seg.id]) ? cityData[seg.id] : [];
+      if (items.length === 0) {
+        return `
+          <section class="hotel-section">
+            <p class="section-label">${esc(seg.label)}</p>
+            <div class="hotel-empty">Tez orada joylanadi</div>
+          </section>
+        `;
+      }
+      const cards = items.map((h) => `
+        <article class="hotel-card">
+          <div class="hh">
+            <h3>${esc(h.name)}</h3>
+            ${h.stars ? `<div class="stars">${"★".repeat(h.stars)}</div>` : ""}
+          </div>
+          ${h.distance ? `<p class="hd"><span class="ico"><svg width="14" height="14"><use href="#i-mosque"/></svg></span>${esc(h.distance)}</p>` : ""}
+          ${h.note ? `<p class="hn">${esc(h.note)}</p>` : ""}
+        </article>
+      `).join("");
+      return `
+        <section class="hotel-section">
+          <p class="section-label">${esc(seg.label)}</p>
+          <div class="hotel-grid">${cards}</div>
+        </section>
+      `;
+    }).join("");
+
+    return `
+      <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Mexmonxonalar<span class="sep">/</span>${esc(cityLabel)}</div>
+      <div class="page-title">
+        <h1>${esc(cityLabel)}</h1>
+        <div class="meta">Toifa bo‘yicha taqsimlangan</div>
+      </div>
+      ${sections}
+    `;
+  }
+
+  // Purchase tab — placeholder until the booking flow is defined.
+  function viewHotelsPurchase() {
+    return `
+      <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Mexmonxonalar<span class="sep">/</span>Xarid qilish</div>
+      <div class="page-title">
+        <h1>Xarid qilish</h1>
+        <div class="meta">Bron va to‘lov bo‘yicha maslahat</div>
+      </div>
       <div class="placeholder">
-        <p>Mehmonxonalar ro‘yxati tez kunda joylanadi.<br/>Aniq variantlar uchun biz bilan bog‘laning.</p>
+        <p>Tez orada bu yerda mehmonxonani band qilish formasi paydo bo‘ladi.<br/>Hozircha to‘g‘ridan to‘g‘ri yozing.</p>
       </div>
       <div class="cta-wrap">${ctaButton()}</div>
     `;
@@ -435,6 +547,8 @@
   function goHome() {
     state.activeCategory = null;
     state.activePackage = null;
+    state.hotelsView = null;
+    state.hotelsCity = null;
     contentEl.innerHTML = viewHome();
     setScreen("home");
     renderBottomNav();
@@ -444,6 +558,7 @@
     state.activeCategory = catId;
     state.activePackage = null;
     state.activeVisa = null;
+    if (catId !== "hotels") { state.hotelsView = null; state.hotelsCity = null; }
     contentEl.innerHTML = viewCategory(catId);
     setScreen("category");
     renderBottomNav();
@@ -474,6 +589,12 @@
     } else if (state.activeVisa) {
       state.activeVisa = null;
       goCategory("visa");
+    } else if (state.activeCategory === "hotels" && state.hotelsCity) {
+      state.hotelsCity = null;
+      goCategory("hotels");
+    } else if (state.activeCategory === "hotels" && state.hotelsView) {
+      state.hotelsView = null;
+      goCategory("hotels");
     } else if (state.activeCategory) {
       goHome();
     }
@@ -903,6 +1024,9 @@
       case "open-transfer-order": openTransferModal(); break;
       case "close-lead":    closeLeadModal(); break;
       case "tap-phone":     tapPhone(t.dataset.num); break;
+      case "hotels-open-list":     state.hotelsView = "list"; state.hotelsCity = null; goCategory("hotels"); break;
+      case "hotels-open-purchase": state.hotelsView = "purchase"; state.hotelsCity = null; goCategory("hotels"); break;
+      case "hotels-pick-city":     state.hotelsCity = t.dataset.city; goCategory("hotels"); break;
     }
   });
 

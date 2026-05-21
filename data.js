@@ -207,3 +207,19 @@ const ROUTE_CITIES = [
   { id: "madina", title: "Madina" },
   { id: "jidda",  title: "Jidda" },
 ];
+
+// ===== Hotels =====
+// Segments are rendered as section labels (Premium first; more to follow).
+// Each hotel: { name, stars?, distance?, note? }.
+// Sections without entries render a "Tez orada joylanadi" stub so the design
+// shows the upcoming structure to the client.
+const HOTEL_SEGMENTS = [
+  { id: "premium", label: "Premium" },
+];
+
+const HOTELS_FALLBACK = {
+  makka:  { premium: [] },
+  madina: { premium: [] },
+};
+
+let HOTELS = HOTELS_FALLBACK;
