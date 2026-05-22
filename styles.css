@@ -1277,6 +1277,38 @@ body {
   padding-bottom: 10px;
 }
 
+/* Two equal columns for paired inputs (adults/children, check-in/check-out). */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.two-col-lbl {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.two-col-cell input {
+  width: 100%;
+  background: rgba(26, 19, 12, 0.7);
+  border: 1px solid var(--line-12);
+  border-radius: 6px;
+  padding: 12px 14px;
+  color: var(--cream);
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.two-col-cell input:focus {
+  border-color: var(--gold);
+}
+
 /* Individual / Guruh segmented tabs at the top of the order modal */
 .tabs-switch {
   display: grid;

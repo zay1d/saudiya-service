@@ -388,18 +388,23 @@
     `;
   }
 
-  // Purchase tab — placeholder until the booking flow is defined.
+  // Purchase tab — opens the hotel booking modal.
   function viewHotelsPurchase() {
     return `
       <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Mexmonxonalar<span class="sep">/</span>Xarid qilish</div>
       <div class="page-title">
         <h1>Xarid qilish</h1>
-        <div class="meta">Bron va to‘lov bo‘yicha maslahat</div>
+        <div class="meta">Bron arizasini qoldiring — menejer bog‘lanadi</div>
       </div>
       <div class="placeholder">
-        <p>Tez orada bu yerda mehmonxonani band qilish formasi paydo bo‘ladi.<br/>Hozircha to‘g‘ridan to‘g‘ri yozing.</p>
+        <p>Quyidagi tugma orqali shahar, sana va kishilar sonini kiriting.<br/>Aniq taklif va narx menejer orqali yetkaziladi.</p>
       </div>
-      <div class="cta-wrap">${ctaButton()}</div>
+      <div class="cta-wrap">
+        <button class="cta" type="button" data-action="open-hotel-order">
+          <span class="cta-eyebrow">Mexmonxona bron qilish</span>
+          <span class="cta-main">Buyurtma berish</span>
+        </button>
+      </div>
     `;
   }
 
@@ -885,6 +890,186 @@
     }
   }
 
+  // ---------- hotel order modal ----------
+
+  function openHotelOrderModal() {
+    renderHotelOrderForm();
+    modalEl.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => {
+      const inp = modalInner.querySelector('input[name="name"]');
+      if (inp) inp.focus();
+    }, 240);
+  }
+
+  function renderHotelOrderForm() {
+    modalInner.innerHTML = `
+      <div class="modal-head">
+        <div class="eyebrow">Mexmonxona · Buyurtma</div>
+        <h2 id="lead-title">Bron arizasi</h2>
+        <div class="hairline"></div>
+      </div>
+
+      <form id="hotel-form" novalidate>
+        <div class="field" data-field="name">
+          <label for="hl-name">Ism va familiya</label>
+          <input id="hl-name" name="name" type="text" maxlength="100" required
+                 autocomplete="name" placeholder="Familiya Ism" />
+          <div class="err">Iltimos, ismingizni kiriting</div>
+        </div>
+
+        <div class="field" data-field="phone">
+          <label for="hl-phone">Telefon raqam</label>
+          <input id="hl-phone" name="phone" type="tel" maxlength="20" required
+                 autocomplete="tel" inputmode="tel" placeholder="+998 __ ___ __ __" />
+          <div class="err">Telefon raqamingizni to‘liq kiriting</div>
+        </div>
+
+        <div class="field" data-field="people">
+          <label>Kishilar soni</label>
+          <div class="two-col">
+            <div class="two-col-cell">
+              <div class="two-col-lbl">Kattalar</div>
+              <input name="adults" type="tel" inputmode="numeric" maxlength="2" placeholder="2" value="2" />
+            </div>
+            <div class="two-col-cell">
+              <div class="two-col-lbl">Bolalar</div>
+              <input name="children" type="tel" inputmode="numeric" maxlength="2" placeholder="0" value="0" />
+            </div>
+          </div>
+          <div class="err">Kamida 1 ta kattalar bo‘lishi kerak</div>
+        </div>
+
+        <div class="field" data-field="city">
+          <label for="hl-city">Shahar</label>
+          <div class="select-wrap">
+            <select id="hl-city" name="city" required>
+              <option value="makka" selected>Makka</option>
+              <option value="madina">Madina</option>
+            </select>
+            <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+          </div>
+        </div>
+
+        <div class="field" data-field="dates">
+          <label>Sana</label>
+          <div class="two-col">
+            <div class="two-col-cell">
+              <div class="two-col-lbl">Kirish</div>
+              <input name="check_in" type="tel" inputmode="numeric" maxlength="10" placeholder="kk/oo/yyyy" required />
+            </div>
+            <div class="two-col-cell">
+              <div class="two-col-lbl">Chiqish</div>
+              <input name="check_out" type="tel" inputmode="numeric" maxlength="10" placeholder="kk/oo/yyyy" required />
+            </div>
+          </div>
+          <div class="err">Sanani to‘g‘ri kiriting (chiqish sanasi kirishdan keyin bo‘lishi kerak)</div>
+        </div>
+
+        <div class="field" data-field="comment">
+          <label for="hl-comment">Qo‘shimcha izoh <span class="opt">(ixtiyoriy)</span></label>
+          <textarea id="hl-comment" name="comment" maxlength="500"
+                    placeholder="Masalan: Haramga yaqin, 2 ta xona"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" data-action="close-lead">Bekor</button>
+          <button type="submit" class="btn-primary" data-role="submit">Yuborish</button>
+        </div>
+      </form>
+    `;
+
+    const form = modalInner.querySelector("#hotel-form");
+    bindPhoneMask(form.querySelector('input[name="phone"]'));
+    bindDateMask(form.querySelector('input[name="check_in"]'));
+    bindDateMask(form.querySelector('input[name="check_out"]'));
+    form.addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      submitHotelOrder(form);
+    });
+  }
+
+  function parseDate(s) {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s || "");
+    if (!m) return null;
+    const d = +m[1], mo = +m[2], y = +m[3];
+    if (mo < 1 || mo > 12 || d < 1 || d > 31 || y < 2024 || y > 2099) return null;
+    const dt = new Date(y, mo - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+    return dt;
+  }
+
+  async function submitHotelOrder(form) {
+    const fields = ["name","phone","people","city","dates"];
+    fields.forEach((f) => {
+      const el = form.querySelector(`[data-field="${f}"]`);
+      if (el) el.classList.remove("invalid");
+    });
+
+    const name = (form.querySelector('input[name="name"]').value || "").trim();
+    const phone = (form.querySelector('input[name="phone"]').value || "").trim();
+    const adults = parseInt(form.querySelector('input[name="adults"]').value || "0", 10) || 0;
+    const children = parseInt(form.querySelector('input[name="children"]').value || "0", 10) || 0;
+    const city = form.querySelector('select[name="city"]').value;
+    const checkIn = (form.querySelector('input[name="check_in"]').value || "").trim();
+    const checkOut = (form.querySelector('input[name="check_out"]').value || "").trim();
+    const comment = (form.querySelector('textarea[name="comment"]').value || "").trim();
+    const submitBtn = form.querySelector('[data-role="submit"]');
+
+    let ok = true;
+    if (!name) { form.querySelector('[data-field="name"]').classList.add("invalid"); ok = false; }
+    if (phone.replace(/\D/g, "").length < 12) {
+      form.querySelector('[data-field="phone"]').classList.add("invalid"); ok = false;
+    }
+    if (adults < 1 || adults > 50 || children < 0 || children > 20) {
+      form.querySelector('[data-field="people"]').classList.add("invalid"); ok = false;
+    }
+    const inDate = parseDate(checkIn);
+    const outDate = parseDate(checkOut);
+    if (!inDate || !outDate || outDate <= inDate) {
+      form.querySelector('[data-field="dates"]').classList.add("invalid"); ok = false;
+    }
+    if (!ok) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Yuborilmoqda…";
+
+    const initData = (tg && tg.initData) || "";
+
+    try {
+      const resp = await fetch(`${API_URL}/order-hotel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, phone,
+          city,
+          adults, children,
+          check_in: checkIn,
+          check_out: checkOut,
+          comment,
+          init_data: initData,
+        }),
+      });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body.detail || `HTTP ${resp.status}`);
+      }
+      renderLeadStatus(
+        "success",
+        "Ariza qabul qilindi",
+        "Menejer tez orada Telegram orqali bog‘lanadi."
+      );
+    } catch (e) {
+      renderLeadStatus(
+        "error",
+        "Xatolik yuz berdi",
+        e && e.message
+          ? `${e.message}. Birozdan keyin qayta urinib ko‘ring.`
+          : "Tarmoq xatosi. Birozdan keyin qayta urinib ko‘ring."
+      );
+    }
+  }
+
   // ---------- lead modal ----------
 
   const modalEl = document.getElementById("lead-modal");
@@ -1046,6 +1231,7 @@
       case "hotels-open-list":     state.hotelsView = "list"; state.hotelsCity = null; goCategory("hotels"); break;
       case "hotels-open-purchase": state.hotelsView = "purchase"; state.hotelsCity = null; goCategory("hotels"); break;
       case "hotels-pick-city":     state.hotelsCity = t.dataset.city; goCategory("hotels"); break;
+      case "open-hotel-order":     openHotelOrderModal(); break;
     }
   });
 

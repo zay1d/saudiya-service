@@ -605,6 +605,18 @@ class TransferOrderIn(BaseModel):
     init_data: str = Field(..., max_length=4000)
 
 
+class HotelOrderIn(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    phone: str = Field(..., min_length=6, max_length=30)
+    city: str = Field(..., min_length=1, max_length=30)
+    adults: int = Field(..., ge=1, le=50)
+    children: int = Field(default=0, ge=0, le=20)
+    check_in: str = Field(..., min_length=8, max_length=20)
+    check_out: str = Field(..., min_length=8, max_length=20)
+    comment: str = Field(default="", max_length=1000)
+    init_data: str = Field(..., max_length=4000)
+
+
 @app.post("/api/order-transfer")
 async def submit_transfer_order(order: TransferOrderIn):
     parsed = verify_init_data(order.init_data, BOT_TOKEN)
@@ -657,6 +669,65 @@ async def submit_transfer_order(order: TransferOrderIn):
         f"<b>Telefon:</b> {_h(order.phone.strip())}",
         f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>",
     ])
+
+    if order.comment.strip():
+        lines += ["", "<b>Izoh:</b>", _h(order.comment.strip())]
+
+    try:
+        await send_to_admins("\n".join(lines))
+    except httpx.HTTPError as e:
+        log.exception("Telegram API error")
+        raise HTTPException(status_code=502, detail="Telegram'ga jo‘natishda xatolik") from e
+
+    return {"ok": True}
+
+
+@app.post("/api/order-hotel")
+async def submit_hotel_order(order: HotelOrderIn):
+    parsed = verify_init_data(order.init_data, BOT_TOKEN)
+    if parsed is None:
+        log.info("hotel rejected: invalid initData")
+        raise HTTPException(status_code=403, detail="invalid initData")
+
+    try:
+        user = json.loads(parsed.get("user", "{}"))
+    except json.JSONDecodeError:
+        user = {}
+
+    tg_id = user.get("id")
+    if tg_id is None:
+        raise HTTPException(status_code=400, detail="user not found in initData")
+
+    if _rate_limited(str(tg_id)):
+        raise HTTPException(status_code=429, detail="Iltimos, biroz kuting va qayta urinib ko‘ring")
+
+    handle = (
+        f"@{user['username']}" if user.get("username")
+        else (f"{user.get('first_name', '')} {user.get('last_name', '')}".strip() or "—")
+    )
+
+    city_norm = order.city.strip().lower()
+    if city_norm not in ("makka", "madina"):
+        raise HTTPException(status_code=400, detail="Shahar noto‘g‘ri")
+    city_title = "Makka" if city_norm == "makka" else "Madina"
+
+    total = order.adults + order.children
+    people = f"{order.adults} katta"
+    if order.children > 0:
+        people += f" + {order.children} bola"
+    people += f" ({total} kishi)"
+
+    lines = [
+        "🏨 <b>Yangi mexmonxona buyurtmasi</b>",
+        "",
+        f"<b>Shahar:</b> {_h(city_title)}",
+        f"<b>Kishilar:</b> {_h(people)}",
+        f"<b>Sana:</b> {_h(order.check_in)} → {_h(order.check_out)}",
+        "",
+        f"<b>Ism:</b> {_h(order.name.strip())}",
+        f"<b>Telefon:</b> {_h(order.phone.strip())}",
+        f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>",
+    ]
 
     if order.comment.strip():
         lines += ["", "<b>Izoh:</b>", _h(order.comment.strip())]
