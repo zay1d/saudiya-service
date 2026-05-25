@@ -889,7 +889,7 @@
     modalEl.classList.remove("hidden");
     document.body.style.overflow = "hidden";
     setTimeout(() => {
-      const inp = modalInner.querySelector('input[name="name"]');
+      const inp = modalInner.querySelector('input[name="hotel_name"]');
       if (inp) inp.focus();
     }, 240);
   }
@@ -903,11 +903,22 @@
       </div>
 
       <form id="hotel-form" novalidate>
-        <div class="field" data-field="name">
-          <label for="hl-name">Ism va familiya</label>
-          <input id="hl-name" name="name" type="text" maxlength="100" required
-                 autocomplete="name" placeholder="Familiya Ism" />
-          <div class="err">Iltimos, ismingizni kiriting</div>
+        <div class="field" data-field="hotel_name">
+          <label for="hl-hotel">Mexmonxona nomi</label>
+          <input id="hl-hotel" name="hotel_name" type="text" maxlength="120" required
+                 placeholder="Masalan: Hilton Suites Jabal Omer" />
+          <div class="err">Mexmonxona nomini kiriting</div>
+        </div>
+
+        <div class="field" data-field="city">
+          <label for="hl-city">Shahar</label>
+          <div class="select-wrap">
+            <select id="hl-city" name="city" required>
+              <option value="makka" selected>Makka</option>
+              <option value="madina">Madina</option>
+            </select>
+            <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+          </div>
         </div>
 
         <div class="field" data-field="phone">
@@ -932,17 +943,6 @@
           <div class="err">Kamida 1 ta kattalar bo‘lishi kerak</div>
         </div>
 
-        <div class="field" data-field="city">
-          <label for="hl-city">Shahar</label>
-          <div class="select-wrap">
-            <select id="hl-city" name="city" required>
-              <option value="makka" selected>Makka</option>
-              <option value="madina">Madina</option>
-            </select>
-            <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
-          </div>
-        </div>
-
         <div class="field" data-field="dates">
           <label>Sana</label>
           <div class="two-col">
@@ -958,8 +958,19 @@
           <div class="err">Sanani to‘g‘ri kiriting (chiqish sanasi kirishdan keyin bo‘lishi kerak)</div>
         </div>
 
+        <div class="field" data-field="meal">
+          <label for="hl-meal">Ovqatlanish</label>
+          <div class="select-wrap">
+            <select id="hl-meal" name="meal">
+              <option value="BB" selected>BB — nonushta</option>
+              <option value="HB">HB — nonushta va kechki ovqat</option>
+            </select>
+            <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+          </div>
+        </div>
+
         <div class="field" data-field="comment">
-          <label for="hl-comment">Qo‘shimcha izoh <span class="opt">(ixtiyoriy)</span></label>
+          <label for="hl-comment">Qo‘shimcha savol <span class="opt">(ixtiyoriy)</span></label>
           <textarea id="hl-comment" name="comment" maxlength="500"
                     placeholder="Masalan: Haramga yaqin, 2 ta xona"></textarea>
         </div>
@@ -992,24 +1003,25 @@
   }
 
   async function submitHotelOrder(form) {
-    const fields = ["name","phone","people","city","dates"];
+    const fields = ["hotel_name","phone","people","city","dates"];
     fields.forEach((f) => {
       const el = form.querySelector(`[data-field="${f}"]`);
       if (el) el.classList.remove("invalid");
     });
 
-    const name = (form.querySelector('input[name="name"]').value || "").trim();
+    const hotelName = (form.querySelector('input[name="hotel_name"]').value || "").trim();
     const phone = (form.querySelector('input[name="phone"]').value || "").trim();
     const adults = parseInt(form.querySelector('input[name="adults"]').value || "0", 10) || 0;
     const children = parseInt(form.querySelector('input[name="children"]').value || "0", 10) || 0;
     const city = form.querySelector('select[name="city"]').value;
     const checkIn = (form.querySelector('input[name="check_in"]').value || "").trim();
     const checkOut = (form.querySelector('input[name="check_out"]').value || "").trim();
+    const meal = form.querySelector('select[name="meal"]').value;
     const comment = (form.querySelector('textarea[name="comment"]').value || "").trim();
     const submitBtn = form.querySelector('[data-role="submit"]');
 
     let ok = true;
-    if (!name) { form.querySelector('[data-field="name"]').classList.add("invalid"); ok = false; }
+    if (!hotelName) { form.querySelector('[data-field="hotel_name"]').classList.add("invalid"); ok = false; }
     if (phone.replace(/\D/g, "").length < 12) {
       form.querySelector('[data-field="phone"]').classList.add("invalid"); ok = false;
     }
@@ -1033,11 +1045,13 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name, phone,
+          hotel_name: hotelName,
+          phone,
           city,
           adults, children,
           check_in: checkIn,
           check_out: checkOut,
+          meal,
           comment,
           init_data: initData,
         }),
