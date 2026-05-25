@@ -889,7 +889,7 @@
     modalEl.classList.remove("hidden");
     document.body.style.overflow = "hidden";
     setTimeout(() => {
-      const inp = modalInner.querySelector('input[name="hotel_name"]');
+      const inp = modalInner.querySelector('input[name="phone"]');
       if (inp) inp.focus();
     }, 240);
   }
@@ -903,11 +903,11 @@
       </div>
 
       <form id="hotel-form" novalidate>
-        <div class="field" data-field="hotel_name">
-          <label for="hl-hotel">Mexmonxona nomi</label>
-          <input id="hl-hotel" name="hotel_name" type="text" maxlength="120" required
-                 placeholder="Masalan: Hilton Suites Jabal Omer" />
-          <div class="err">Mexmonxona nomini kiriting</div>
+        <div class="field" data-field="phone">
+          <label for="hl-phone">Telefon raqam</label>
+          <input id="hl-phone" name="phone" type="tel" maxlength="20" required
+                 autocomplete="tel" inputmode="tel" placeholder="+998 __ ___ __ __" />
+          <div class="err">Telefon raqamingizni to‘liq kiriting</div>
         </div>
 
         <div class="field" data-field="city">
@@ -921,26 +921,11 @@
           </div>
         </div>
 
-        <div class="field" data-field="phone">
-          <label for="hl-phone">Telefon raqam</label>
-          <input id="hl-phone" name="phone" type="tel" maxlength="20" required
-                 autocomplete="tel" inputmode="tel" placeholder="+998 __ ___ __ __" />
-          <div class="err">Telefon raqamingizni to‘liq kiriting</div>
-        </div>
-
-        <div class="field" data-field="people">
-          <label>Kishilar soni</label>
-          <div class="two-col">
-            <div class="two-col-cell">
-              <div class="two-col-lbl">Kattalar</div>
-              <input name="adults" type="tel" inputmode="numeric" maxlength="2" placeholder="2" value="2" />
-            </div>
-            <div class="two-col-cell">
-              <div class="two-col-lbl">Bolalar</div>
-              <input name="children" type="tel" inputmode="numeric" maxlength="2" placeholder="0" value="0" />
-            </div>
-          </div>
-          <div class="err">Kamida 1 ta kattalar bo‘lishi kerak</div>
+        <div class="field" data-field="hotel_name">
+          <label for="hl-hotel">Mexmonxona nomi</label>
+          <input id="hl-hotel" name="hotel_name" type="text" maxlength="120" required
+                 placeholder="Masalan: Swiss Al Maqom yoki boshqa" />
+          <div class="err">Mexmonxona nomini kiriting</div>
         </div>
 
         <div class="field" data-field="dates">
@@ -958,21 +943,33 @@
           <div class="err">Sanani to‘g‘ri kiriting (chiqish sanasi kirishdan keyin bo‘lishi kerak)</div>
         </div>
 
+        <div class="field" data-field="room_type">
+          <label for="hl-room">Xona turi</label>
+          <div class="select-wrap">
+            <select id="hl-room" name="room_type">
+              <option value="DBL" selected>DBL — 2 o‘rinli</option>
+              <option value="TRPL">TRPL — 3 o‘rinli</option>
+              <option value="QDRPL">QDRPL — 4 o‘rinli</option>
+            </select>
+            <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
+          </div>
+        </div>
+
         <div class="field" data-field="meal">
-          <label for="hl-meal">Ovqatlanish</label>
+          <label for="hl-meal">Ovqat turi</label>
           <div class="select-wrap">
             <select id="hl-meal" name="meal">
-              <option value="BB" selected>BB — nonushta</option>
-              <option value="HB">HB — nonushta va kechki ovqat</option>
+              <option value="BB (Nonushta)" selected>BB — Nonushta</option>
+              <option value="HB (Nonushta + kechki ovqat)">HB — Nonushta + kechki ovqat</option>
             </select>
             <span class="select-caret"><svg width="14" height="14"><use href="#i-chev"/></svg></span>
           </div>
         </div>
 
         <div class="field" data-field="comment">
-          <label for="hl-comment">Qo‘shimcha savol <span class="opt">(ixtiyoriy)</span></label>
+          <label for="hl-comment">Qo‘shimcha izoh <span class="opt">(ixtiyoriy)</span></label>
           <textarea id="hl-comment" name="comment" maxlength="500"
-                    placeholder="Masalan: Haramga yaqin, 2 ta xona"></textarea>
+                    placeholder="Masalan: Haramga yaqin, oilaviy xona"></textarea>
         </div>
 
         <div class="modal-actions">
@@ -1003,7 +1000,7 @@
   }
 
   async function submitHotelOrder(form) {
-    const fields = ["hotel_name","phone","people","city","dates"];
+    const fields = ["hotel_name","phone","city","dates"];
     fields.forEach((f) => {
       const el = form.querySelector(`[data-field="${f}"]`);
       if (el) el.classList.remove("invalid");
@@ -1011,11 +1008,10 @@
 
     const hotelName = (form.querySelector('input[name="hotel_name"]').value || "").trim();
     const phone = (form.querySelector('input[name="phone"]').value || "").trim();
-    const adults = parseInt(form.querySelector('input[name="adults"]').value || "0", 10) || 0;
-    const children = parseInt(form.querySelector('input[name="children"]').value || "0", 10) || 0;
     const city = form.querySelector('select[name="city"]').value;
     const checkIn = (form.querySelector('input[name="check_in"]').value || "").trim();
     const checkOut = (form.querySelector('input[name="check_out"]').value || "").trim();
+    const roomType = form.querySelector('select[name="room_type"]').value;
     const meal = form.querySelector('select[name="meal"]').value;
     const comment = (form.querySelector('textarea[name="comment"]').value || "").trim();
     const submitBtn = form.querySelector('[data-role="submit"]');
@@ -1024,9 +1020,6 @@
     if (!hotelName) { form.querySelector('[data-field="hotel_name"]').classList.add("invalid"); ok = false; }
     if (phone.replace(/\D/g, "").length < 12) {
       form.querySelector('[data-field="phone"]').classList.add("invalid"); ok = false;
-    }
-    if (adults < 1 || adults > 50 || children < 0 || children > 20) {
-      form.querySelector('[data-field="people"]').classList.add("invalid"); ok = false;
     }
     const inDate = parseDate(checkIn);
     const outDate = parseDate(checkOut);
@@ -1048,9 +1041,9 @@
           hotel_name: hotelName,
           phone,
           city,
-          adults, children,
           check_in: checkIn,
           check_out: checkOut,
+          room_type: roomType,
           meal,
           comment,
           init_data: initData,

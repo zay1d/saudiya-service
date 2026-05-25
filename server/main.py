@@ -609,11 +609,10 @@ class HotelOrderIn(BaseModel):
     hotel_name: str = Field(..., min_length=1, max_length=120)
     phone: str = Field(..., min_length=6, max_length=30)
     city: str = Field(..., min_length=1, max_length=30)
-    adults: int = Field(..., ge=1, le=50)
-    children: int = Field(default=0, ge=0, le=20)
     check_in: str = Field(..., min_length=8, max_length=20)
     check_out: str = Field(..., min_length=8, max_length=20)
-    meal: str = Field(default="", max_length=10)
+    room_type: str = Field(default="", max_length=20)
+    meal: str = Field(default="", max_length=40)
     comment: str = Field(default="", max_length=1000)
     init_data: str = Field(..., max_length=4000)
 
@@ -712,21 +711,16 @@ async def submit_hotel_order(order: HotelOrderIn):
         raise HTTPException(status_code=400, detail="Shahar noto‘g‘ri")
     city_title = "Makka" if city_norm == "makka" else "Madina"
 
-    total = order.adults + order.children
-    people = f"{order.adults} katta"
-    if order.children > 0:
-        people += f" + {order.children} bola"
-    people += f" ({total} kishi)"
-
     lines = [
         "🏨 <b>Yangi mexmonxona buyurtmasi</b>",
         "",
         f"<b>Mexmonxona:</b> {_h(order.hotel_name.strip())}",
         f"<b>Shahar:</b> {_h(city_title)}",
-        f"<b>Kishilar:</b> {_h(people)}",
         f"<b>Sana:</b> {_h(order.check_in)} → {_h(order.check_out)}",
     ]
 
+    if order.room_type.strip():
+        lines.append(f"<b>Xona turi:</b> {_h(order.room_type.strip())}")
     if order.meal.strip():
         lines.append(f"<b>Ovqatlanish:</b> {_h(order.meal.strip())}")
 
