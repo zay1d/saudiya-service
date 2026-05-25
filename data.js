@@ -209,55 +209,70 @@ const ROUTE_CITIES = [
 ];
 
 // ===== Hotels =====
-// Segments are rendered as section labels (Premium first; more to follow).
-// A segment is an array of groups. Each group has an optional sub-label
-// (e.g. a complex name like "Soat majmuasi") and a list of hotels.
-// Hotels with no group sit in a final unlabeled group at the bottom.
-// Each hotel: { name, stars?, distance?, note? }.
-// Empty segments render a "Tez orada joylanadi" stub.
+// Segments are rendered as section labels (VIP / Comfort / Standart / Ekonom).
+// Each segment maps to a flat list of hotel names for the city.
+// A segment may instead be { contact: true, note } — it renders a
+// "biz bilan bog'laning" block instead of a list (used for Ekonom).
+// Empty list segments render a "Tez orada joylanadi" stub.
 const HOTEL_SEGMENTS = [
-  { id: "premium", label: "Premium" },
+  { id: "vip",      label: "VIP" },
+  { id: "comfort",  label: "Comfort" },
+  { id: "standart", label: "Standart" },
+  { id: "ekonom",   label: "Ekonom", contact: true,
+    note: "Makka va Madinadagi ekonom mexmonxonalar uchun biz bilan bog‘laning" },
 ];
 
 const HOTELS_FALLBACK = {
   makka: {
-    premium: [
-      {
-        group: "Soat majmuasi",
-        hotels: [
-          { name: "Fermont (Gold)" },
-          { name: "Swiss Makka va Maqom" },
-          { name: "Mowenpick" },
-          { name: "Pullman Zam zam" },
-          { name: "Raffles" },
-          { name: "Rayhaan" },
-        ],
-      },
-      {
-        group: "Jabal Omer majmuasi",
-        hotels: [
-          { name: "Adress" },
-          { name: "Marriot" },
-          { name: "Jumaira" },
-          { name: "Hyatt Regency" },
-          { name: "DoubleTree by Hilton" },
-          { name: "Anjum" },
-          { name: "Shaza" },
-          { name: "Hilton Conversation" },
-          { name: "Hilton Suites" },
-          { name: "Conrad" },
-        ],
-      },
-      {
-        hotels: [
-          { name: "Dar Tavhid Intercontinental" },
-          { name: "Makkah Tower" },
-        ],
-      },
+    vip: [
+      "Dar tavhid intercontinental",
+      "Makkah towers",
+      "Fermont / Fermont Gold",
+      "Swiss al makka",
+      "Swiss al Maqom",
+      "Raffless",
+      "Mowenpick Hojar",
+      "Pulman Zam zam",
+      "Reyhan al Marwa",
+      "Hyatt Regency Jabal omer",
+      "Jumaira Jabal omer",
+      "Conrad Jabal omer",
+      "Hilton Suits Jabal omer",
+      "Rotana Jabal omer",
     ],
+    comfort: [
+      "Adress Jabal omer",
+      "Marriot Jabal omer",
+      "Double Tree Jabal omer",
+      "Hilton convention",
+      "Anjum hotel",
+      "Tilal Jabal Kaba hotel",
+      "Sheraton Makka hotel",
+      "Prestage hotel",
+      "Shohada hotel",
+      "Courtyard by Marriot",
+      "Makarem Um Quro",
+    ],
+    standart: [
+      "Infinity hotel Ajyad",
+      "Nawazi hotel Ajyad",
+      "Emar Elit Ajyad",
+      "Reyhan al mashaer ajyad",
+      "Snood Ajyad",
+      "Batoul Ajyad",
+      "Lamar hotels",
+      "Kiswa tower",
+      "Al Farabi Hotel",
+      "Ramada Tayser",
+      "Ramada al Qosr",
+    ],
+    ekonom: [],
   },
   madina: {
-    premium: [],
+    vip: [],
+    comfort: [],
+    standart: [],
+    ekonom: [],
   },
 };
 

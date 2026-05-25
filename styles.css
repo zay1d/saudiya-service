@@ -985,61 +985,41 @@ body {
 }
 .hotel-section .section-label {
   padding: 0 6px;
-  margin: 0 0 16px;
-}
-.hotel-group + .hotel-group {
-  margin-top: 16px;
-}
-.hotel-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  margin: 0 0 14px;
 }
 
-/* Framed group: complex name + all its hotels in one container. */
-.hotel-group.has-group {
+/* Each category is one framed list; hotels are rows with hairline dividers. */
+.hotel-frame {
   background: rgba(56, 40, 24, 0.45);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid var(--line-20);
   border-radius: 14px;
-  padding: 18px 18px 12px;
+  padding: 4px 18px;
 }
-.hotel-group.has-group .group-label {
+.hotel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line-12);
+}
+.hotel-row:first-child { border-top: 0; }
+.hotel-row .hr-name {
   font-family: var(--serif);
   font-weight: 400;
-  font-size: 22px;
-  line-height: 1.15;
+  font-size: 18px;
+  line-height: 1.25;
   color: var(--cream);
-  margin: 0 0 12px;
-  letter-spacing: 0.01em;
 }
-.hotel-group.has-group .hotel-grid {
-  gap: 0;
-  position: relative;
-  padding-left: 18px;
+.hotel-row .stars {
+  color: var(--gold);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  flex: 0 0 auto;
 }
-.hotel-group.has-group .hotel-grid::before {
-  content: "";
-  position: absolute;
-  left: 2px; top: 10px; bottom: 10px;
-  width: 1px;
-  background: var(--gold);
-  opacity: 0.35;
-}
-.hotel-group.has-group .hotel-card {
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: 0;
-  border-top: 1px solid var(--line-12);
-  border-radius: 0;
-  padding: 11px 0;
-}
-.hotel-group.has-group .hotel-card:first-child {
-  padding-top: 6px;
-  border-top: 0;
-}
+
 .hotel-empty {
   font-family: var(--serif);
   font-style: italic;
@@ -1051,59 +1031,24 @@ body {
   border-radius: 12px;
   background: rgba(26, 19, 12, 0.25);
 }
-.hotel-card {
-  background: rgba(56, 40, 24, 0.45);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid var(--line-20);
+
+/* Ekonom segment: contact prompt instead of a list. */
+.hotel-contact {
+  text-align: center;
+  padding: 24px 20px;
+  border: 1px dashed var(--line-12);
   border-radius: 14px;
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background: rgba(26, 19, 12, 0.25);
 }
-.hotel-card .hh {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-}
-.hotel-card h3 {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 20px;
-  color: var(--cream);
-  margin: 0;
-  line-height: 1.15;
-}
-.hotel-card .stars {
-  color: var(--gold);
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  flex: 0 0 auto;
-}
-.hotel-card .hd {
-  font-family: var(--sans);
-  font-size: 12.5px;
-  color: var(--cream-dim);
-  margin: 0;
-  letter-spacing: 0.01em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.hotel-card .hd .ico {
-  color: var(--gold);
-  display: grid; place-items: center;
-}
-.hotel-card .hn {
+.hotel-contact p {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 13.5px;
+  font-size: 14px;
+  line-height: 1.55;
   color: var(--cream-dim);
-  margin: 0;
-  line-height: 1.45;
+  margin: 0 0 18px;
 }
+.hotel-contact .cta { margin: 0; }
 
 /* ============ TRANSFER CARDS ============ */
 
