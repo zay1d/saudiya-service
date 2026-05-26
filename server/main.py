@@ -612,6 +612,7 @@ class HotelOrderIn(BaseModel):
     check_in: str = Field(..., min_length=8, max_length=20)
     check_out: str = Field(..., min_length=8, max_length=20)
     room_type: str = Field(default="", max_length=20)
+    rooms: int = Field(default=1, ge=1, le=100)
     meal: str = Field(default="", max_length=40)
     comment: str = Field(default="", max_length=1000)
     init_data: str = Field(..., max_length=4000)
@@ -721,6 +722,7 @@ async def submit_hotel_order(order: HotelOrderIn):
 
     if order.room_type.strip():
         lines.append(f"<b>Xona turi:</b> {_h(order.room_type.strip())}")
+    lines.append(f"<b>Xonalar soni:</b> {order.rooms}")
     if order.meal.strip():
         lines.append(f"<b>Ovqatlanish:</b> {_h(order.meal.strip())}")
 

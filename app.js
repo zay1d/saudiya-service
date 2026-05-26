@@ -977,6 +977,12 @@
           </div>
         </div>
 
+        <div class="field" data-field="rooms">
+          <label for="hl-rooms">Xonalar soni</label>
+          <input id="hl-rooms" name="rooms" type="tel" inputmode="numeric" maxlength="3" placeholder="1" value="1" />
+          <div class="err">Kamida 1 ta xona kiriting</div>
+        </div>
+
         <div class="field" data-field="meal">
           <label for="hl-meal">Ovqat turi</label>
           <div class="select-wrap">
@@ -1022,7 +1028,7 @@
   }
 
   async function submitHotelOrder(form) {
-    const fields = ["hotel_name","phone","city","dates"];
+    const fields = ["hotel_name","phone","city","dates","rooms"];
     fields.forEach((f) => {
       const el = form.querySelector(`[data-field="${f}"]`);
       if (el) el.classList.remove("invalid");
@@ -1034,6 +1040,7 @@
     const checkIn = (form.querySelector('input[name="check_in"]').value || "").trim();
     const checkOut = (form.querySelector('input[name="check_out"]').value || "").trim();
     const roomType = form.querySelector('select[name="room_type"]').value;
+    const rooms = parseInt(form.querySelector('input[name="rooms"]').value || "0", 10) || 0;
     const meal = form.querySelector('select[name="meal"]').value;
     const comment = (form.querySelector('textarea[name="comment"]').value || "").trim();
     const submitBtn = form.querySelector('[data-role="submit"]');
@@ -1047,6 +1054,9 @@
     const outDate = parseDate(checkOut);
     if (!inDate || !outDate || outDate <= inDate) {
       form.querySelector('[data-field="dates"]').classList.add("invalid"); ok = false;
+    }
+    if (rooms < 1 || rooms > 100) {
+      form.querySelector('[data-field="rooms"]').classList.add("invalid"); ok = false;
     }
     if (!ok) return;
 
@@ -1066,6 +1076,7 @@
           check_in: checkIn,
           check_out: checkOut,
           room_type: roomType,
+          rooms,
           meal,
           comment,
           init_data: initData,
