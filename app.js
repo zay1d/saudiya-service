@@ -5,6 +5,28 @@
     tg.expand();
     if (tg.setHeaderColor)     tg.setHeaderColor("#2a1f15");
     if (tg.setBackgroundColor) tg.setBackgroundColor("#2a1f15");
+
+    // Push UI below the notch + Telegram's overlaid controls when fullscreen.
+    // Reads Telegram's safe-area insets; stays 0 in browser / older clients.
+    const applySafeArea = () => {
+      const sa = tg.safeAreaInset || {};
+      const csa = tg.contentSafeAreaInset || {};
+      const top = (sa.top || 0) + (csa.top || 0);
+      document.documentElement.style.setProperty("--tg-top", top + "px");
+    };
+
+    // Request true fullscreen (Bot API 8.0+) so the app covers the whole
+    // screen even when launched from the in-chat menu button, not just from
+    // the Main Mini App entry.
+    if (tg.isVersionAtLeast && tg.isVersionAtLeast("8.0") && typeof tg.requestFullscreen === "function") {
+      try { tg.requestFullscreen(); } catch (e) { /* unsupported surface */ }
+      if (typeof tg.onEvent === "function") {
+        tg.onEvent("fullscreenChanged", applySafeArea);
+        tg.onEvent("safeAreaChanged", applySafeArea);
+        tg.onEvent("contentSafeAreaChanged", applySafeArea);
+      }
+    }
+    applySafeArea();
   }
 
   const appEl     = document.getElementById("app");

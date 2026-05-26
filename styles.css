@@ -151,7 +151,7 @@ body {
 }
 
 /* foreground content */
-#content { position: relative; z-index: 10; padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
+#content { position: relative; z-index: 10; padding-top: var(--tg-top, 0px); padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
 #app[data-screen="home"] #content { padding-bottom: 28px; }
 
 /* ============ HOME ============ */
