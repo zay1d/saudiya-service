@@ -177,7 +177,7 @@ the home menu. Back button always goes one level up (detail → list → home).
 Tariff names and contents come from the client's brief — preserve **1:1** with no invention:
 - VIP — "Birinchi sinf", `days: "Xohlagan kun"`, 5★ Haramga piyoda, business class, 5-6 kishilik guruh
 - Comfort — `days: "11 / 14 kun"`, ~500m Haramdan, 20-30 kishilik
-- Standart — `days: "14 kun"` (3 Makka + 11 Madina), ~1-2 km Haramdan, ellikboshi
+- Standart — `days: "14 kun"` (3 Madina + 11 Makka), ~1-2 km Haramdan, ellikboshi
 - Ekonom — `days: "14 kun"` (12 Makka + 2 Madina), 3-7 km, 4-5 kishilik xona, 40-50 kishilik guruh
 
 No prices anywhere — they're contact-on-request:

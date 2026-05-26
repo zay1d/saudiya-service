@@ -88,7 +88,7 @@ const UMRA_PACKAGES = [
     lede: "Eng muvozanatli variant — narx va sifat uyg‘unligi.",
     features: [
       { icon: "i-hotel",    title: "Mexmonxona",  desc: "Makka va Madinadagi Haramdan ~1–2 km masofada", value: "~1–2 km" },
-      { icon: "i-calendar", title: "Dastur",      desc: "3 kun Makka · 11 kun Madina",                  value: "14 kun" },
+      { icon: "i-calendar", title: "Dastur",      desc: "3 kun Madina · 11 kun Makka",                  value: "14 kun" },
       { icon: "i-plane",    title: "Aviabilet",   desc: "Standart tarif",                               value: "Standart" },
       { icon: "i-utensils", title: "Ovqatlanish", desc: "Madinada 3 mahal · Makkada 2 mahal",            value: "BB/HB" },
       { icon: "i-bus",      title: "Transport",   desc: "Avtobus xizmati",                              value: "Avtobus" },
