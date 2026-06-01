@@ -17,3 +17,6 @@ venv/
 
 # One-off generated logo exports (not part of the app)
 logo-*.png
+
+# Working artifacts (Word docs for the client, etc.)
+*.docx
