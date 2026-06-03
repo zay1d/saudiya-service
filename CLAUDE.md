@@ -24,9 +24,9 @@ the repo so the next session has the same picture.
 | Active branch | `claude/telegram-mini-app-U5ytG` (everything lands here, no merge to main yet) |
 | Frontend | vanilla HTML/CSS/JS at repo root, served by Nginx directly |
 | Backend | FastAPI (`server/main.py`) on `127.0.0.1:8000`, behind Nginx `/api/*` |
-| Process mgr | systemd unit `saudia-bot` (autorestart, logs to `/var/log/saudia-bot.log`) |
+| Process mgr | systemd unit `saudia-bot`, runs as **unprivileged user `saudia`** (NOT root) + sandbox; autorestart, logs to `/var/log/saudia-bot.log` |
 | TLS | Let's Encrypt for `saudihizmat.fyi` + `www.saudihizmat.fyi`, auto-renew via `certbot.timer` |
-| Env file | `/opt/saudia-service/.env` (chmod 600, **gitignored**, never put in repo) |
+| Env file | `/opt/saudia-service/.env` (chmod 640 `root:saudia` — service user reads it at boot via load_dotenv; **gitignored**, never put in repo) |
 | Content store | `/opt/saudia-service/content.json` (live visa/transfer data, **gitignored**) — seeded from `server/content.default.json` on first boot |
 | Telegram bot | username via getMe at startup, owner sets up via @BotFather |
 | Admin chat | configured in `.env` as `ADMIN_CHAT_ID` (comma-separated for multiple admins) |
@@ -305,6 +305,21 @@ ssh root@167.86.125.229 'bash /opt/saudia-service/server/update.sh'
 The script does: `git pull`, `pip install -r server/requirements.txt`, `systemctl restart saudia-bot`,
 prints "OK — saudia-bot running" on success.
 
+### Service runs as non-root (`saudia`)
+
+`saudia-bot.service` runs as the unprivileged system user **`saudia`** with a systemd sandbox
+(`ProtectSystem=strict`, `NoNewPrivileges`, `ReadWritePaths` limited to the app dir + log).
+`install.sh` creates the user and sets ownership; the one-time migration for an already-running
+root install is in `server/README.md`. Key facts for future sessions:
+- Code/`.venv` stay **root-owned**; the app dir is group `saudia` + `g+rwx` so the service can do
+  the atomic `content.json` temp+rename. `.env` is `640 root:saudia`.
+- `update.sh` (run as root) keeps working — it doesn't reinstall the unit. If `git pull` warns
+  `dubious ownership`, run `git config --global --add safe.directory /opt/saudia-service`.
+- **Don't revert the unit to `User=root`.** It was hardened on 2026-06-03; root gives no benefit
+  and a single RCE-class bug would land as root next to the TLS keys + nginx.
+- To verify after deploy: `systemctl show saudia-bot -p MainPID --value | xargs -I{} ps -o user= -p {}`
+  must print `saudia`.
+
 For frontend-only changes (HTML/CSS/JS), the restart isn't strictly necessary — Nginx serves
 the files directly — but `update.sh` runs it anyway, harmless.
 
@@ -414,6 +429,21 @@ When a new big flow is proposed, suggest a codeword and don't implement until us
   but verifying via logs on first renewal cycle would be nice.
 - **Bot token + VPS root password rotation** — the owner shared both in chat early on, so
   they should be regenerated. Noted but not enforced.
+
+### Security audit (2026-06-03) — remaining hardening
+
+A full security review was done (see `handover.md`). The app logic is solid (correct initData
+HMAC, consistent output escaping). Open hardening items, by priority:
+- ✅ **DONE** — backend no longer runs as root (now `saudia` + systemd sandbox).
+- **nginx security headers** — no HSTS / CSP / `X-Content-Type-Options` yet. Edit
+  `server/nginx.conf` (server block for `saudihizmat.fyi`), then `nginx -t && systemctl reload nginx`.
+  Highest-value next step, low risk.
+- **`_last_seen` unbounded growth** (`server/main.py`) — rate-limit dict is never GC'd; add TTL eviction.
+- **`/api/content` DoS** — reads file on every request, no cache / rate limit; cache in memory or add `limit_req`.
+- **Passport file forwarding** — no size/MIME check on the document/photo `file_id` users send.
+- **`content.json` not in `.gitignore`** — CLAUDE.md claims it is, but it isn't; currently untracked.
+  Add it so a stray `git add .` can't commit live data.
+- **`/api/health` discloses admin count**; TLS cipher string is dated.
 
 ---
 
