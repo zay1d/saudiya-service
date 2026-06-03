@@ -24,6 +24,14 @@ to `@Saudiaservice_bot`.
 
 (Reverse-chronological, last ~30 commits.)
 
+0. **Backend hardening — runs as unprivileged `saudia` user, not root.**
+   `saudia-bot.service` now has `User/Group=saudia` plus sandbox directives
+   (`NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome`, `PrivateTmp`,
+   `ReadWritePaths` limited to app dir + log). `install.sh` creates the
+   account, sets `.env` to `640 root:saudia` (load_dotenv needs to read it
+   at boot). One-time migration steps for existing root-based installs are
+   in `server/README.md`. Closes an entire class of RCE-blast-radius bugs.
+
 1. **Hotels — Madina populated.** 16 hotels split into VIP/Comfort/Standart by
    brand prestige; Ekonom kept as the "biz bilan bog'laning" prompt. Client
    sent names without tiers — segmentation is a guess, needs review.

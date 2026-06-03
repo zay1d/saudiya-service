@@ -24,7 +24,7 @@ the repo so the next session has the same picture.
 | Active branch | `claude/telegram-mini-app-U5ytG` (everything lands here, no merge to main yet) |
 | Frontend | vanilla HTML/CSS/JS at repo root, served by Nginx directly |
 | Backend | FastAPI (`server/main.py`) on `127.0.0.1:8000`, behind Nginx `/api/*` |
-| Process mgr | systemd unit `saudia-bot` (autorestart, logs to `/var/log/saudia-bot.log`) |
+| Process mgr | systemd unit `saudia-bot` running as **`saudia` (unprivileged)** with `ProtectSystem=strict` / `ProtectHome` / `PrivateTmp` / `NoNewPrivileges`. Logs to `/var/log/saudia-bot.log`. `.env` is `640 root:saudia` so `load_dotenv` can read it at boot. |
 | TLS | Let's Encrypt for `saudihizmat.fyi` + `www.saudihizmat.fyi`, auto-renew via `certbot.timer` |
 | Env file | `/opt/saudia-service/.env` (chmod 600, **gitignored**, never put in repo) |
 | Content store | `/opt/saudia-service/content.json` (live visa/transfer data, **gitignored**) — seeded from `server/content.default.json` on first boot |
