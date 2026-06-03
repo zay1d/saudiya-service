@@ -37,7 +37,30 @@ python3 -m venv .venv
 .venv/bin/pip install --upgrade pip --quiet
 .venv/bin/pip install -r server/requirements.txt --quiet
 
-echo "==> 5/7  systemd service"
+echo "==> 5/7  systemd service (runs as unprivileged 'saudia' user)"
+# Dedicated service account — no login shell, no home dir.
+if ! getent passwd saudia >/dev/null; then
+  useradd --system --no-create-home --shell /usr/sbin/nologin saudia
+fi
+
+# The service reads its code/.venv and writes content.json (atomic temp+rename
+# in the app dir). Keep code owned by root (so root's `git pull` / pip in
+# update.sh keep working), but let the 'saudia' group write the app dir + the
+# live content store.
+chgrp -R saudia "$APP_DIR"
+chmod g+rwx "$APP_DIR"
+[[ -f "$APP_DIR/content.json" ]] && chown saudia:saudia "$APP_DIR/content.json"
+
+# .env: readable by the service user only (root + saudia group, 640). The app's
+# load_dotenv() opens this file at startup, so 600 root:root would crash it.
+chown root:saudia "$APP_DIR/.env"
+chmod 640 "$APP_DIR/.env"
+
+# Append-mode log must be writable by the service user.
+touch /var/log/saudia-bot.log
+chown saudia:saudia /var/log/saudia-bot.log
+chmod 644 /var/log/saudia-bot.log
+
 install -m 644 server/saudia-bot.service /etc/systemd/system/saudia-bot.service
 systemctl daemon-reload
 systemctl enable saudia-bot

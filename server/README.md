@@ -39,6 +39,42 @@ After `git push` to the branch (or merge to `main`):
 ssh root@167.86.125.229 'bash /opt/saudia-service/server/update.sh'
 ```
 
+## Hardening: run as non-root (one-time migration)
+
+The service runs as the unprivileged `saudia` user, not root. A fresh
+`install.sh` sets this up automatically. To migrate an **existing** install
+that's still running as root, run once as root on the VPS:
+
+```bash
+cd /opt/saudia-service
+git pull
+
+# 1. Dedicated service account
+getent passwd saudia >/dev/null || useradd --system --no-create-home --shell /usr/sbin/nologin saudia
+
+# 2. Let 'saudia' write the app dir (atomic content.json writes) + the log.
+#    Code stays root-owned so root's git pull / pip in update.sh keep working.
+chgrp -R saudia /opt/saudia-service
+chmod g+rwx /opt/saudia-service
+[ -f content.json ] && chown saudia:saudia content.json
+touch /var/log/saudia-bot.log && chown saudia:saudia /var/log/saudia-bot.log
+
+# .env readable by the service user (load_dotenv opens it at startup)
+chown root:saudia .env && chmod 640 .env
+
+# 3. Install the hardened unit + restart
+install -m 644 server/saudia-bot.service /etc/systemd/system/saudia-bot.service
+systemctl daemon-reload && systemctl restart saudia-bot
+
+# 4. Verify it came up as 'saudia' (not root) and the API answers
+systemctl show saudia-bot -p MainPID --value | xargs -I{} ps -o user= -p {}
+curl -s https://saudihizmat.fyi/api/health
+```
+
+Admin price edits via the bot still work — `content.json` is writable by the
+service user. `.env` is `640 root:saudia`: readable by the service account
+(its `load_dotenv()` opens it at boot) but not world-readable.
+
 ## Troubleshooting
 
 ```bash

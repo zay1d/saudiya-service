@@ -4,7 +4,11 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
+# Runs as a dedicated unprivileged user, NOT root. The app only needs to
+# read its code + .venv and write content.json — none of which needs root.
+# See server/install.sh for the one-time user creation + chown.
+User=saudia
+Group=saudia
 WorkingDirectory=/opt/saudia-service
 EnvironmentFile=/opt/saudia-service/.env
 ExecStart=/opt/saudia-service/.venv/bin/uvicorn server.main:app --host 127.0.0.1 --port 8000
@@ -12,6 +16,21 @@ Restart=always
 RestartSec=3
 StandardOutput=append:/var/log/saudia-bot.log
 StandardError=append:/var/log/saudia-bot.log
+
+# --- Hardening: drop privileges + sandbox the filesystem ---
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+# Everything else on disk is read-only to the service. It may write only:
+#   - /opt/saudia-service   → content.json is written atomically (temp file in
+#                             this dir + os.replace), so the dir itself must be RW
+#   - the append-mode log file
+ReadWritePaths=/opt/saudia-service /var/log/saudia-bot.log
 
 [Install]
 WantedBy=multi-user.target
