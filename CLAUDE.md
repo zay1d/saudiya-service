@@ -28,9 +28,10 @@ the repo so the next session has the same picture.
 | TLS | Let's Encrypt for `saudihizmat.fyi` + `www.saudihizmat.fyi`, auto-renew via `certbot.timer` |
 | Env file | `/opt/saudia-service/.env` (chmod 600, **gitignored**, never put in repo) |
 | Content store | `/opt/saudia-service/content.json` (live visa/transfer data, **gitignored**) — seeded from `server/content.default.json` on first boot |
-| Telegram bot | username via getMe at startup, owner sets up via @BotFather |
-| Admin chat | configured in `.env` as `ADMIN_CHAT_ID` (comma-separated for multiple admins) |
+| Telegram bot | **migrating** from old saudia bot (token `8897203944…`, leaked in chat) to `@Saudiaservice_bot`. After migration: rotate the old one via `/revoke` |
+| Admin chat | configured in `.env` as `ADMIN_CHAT_ID` (comma-separated for multiple admins). Owner's chat id: `6136579036` |
 | Bot polling | long-polling started in FastAPI `lifespan`, not webhook |
+| Mini App surfaces | Main Mini App (`t.me/<bot>/app`) + menu button + profile button. Code calls `requestFullscreen()` (Bot API 8.0+) so all three render full-screen |
 
 ---
 
@@ -49,6 +50,7 @@ FastAPI (uvicorn) ──┬── GET  /api/health
                     ├── GET  /api/content        (visas + transfers + bot.username)
                     ├── POST /api/lead           (Umra package interest)
                     ├── POST /api/order-transfer (transfer order, individual or group)
+                    ├── POST /api/order-hotel    (hotel booking: name + dates + room + meal)
                     └── background task: Telegram long-poll loop
                             ├── admin commands (/prices, /setprice, /toggle, /help)
                             └── visa purchase flow (state machine)
@@ -71,7 +73,8 @@ for Pages preview if ever needed.
 ├── app.js                  IIFE; state machine, all views, modal logic, fetches
 ├── data.js                 CATEGORIES, UMRA_PACKAGES, VISAS_FALLBACK, TRANSFERS_FALLBACK,
 │                            VISA_ICONS, TRANSFER_ICONS, ROUTE_CITIES, CONTACT_URL,
-│                            CONTACT_LABEL, API_URL (auto-detects origin)
+│                            CONTACT_LABEL, CONTACTS (Aloqa cards), HOTEL_SEGMENTS,
+│                            HOTELS_FALLBACK (Makka + Madina lists), API_URL (auto-origin)
 ├── styles.css              all visual rules — single file
 ├── assets/
 │   ├── saudia-service-logo.png  (1000×666, ~408KB)
@@ -82,8 +85,11 @@ for Pages preview if ever needed.
 ├── build.py                builds saudia-service.html (self-contained single-file
 │                            bundle with everything inlined as base64 data: URIs)
 ├── saudia-service.html     committed for the owner to share offline (~2MB)
+│                            — may be stale after recent commits; rebuild via build.py
+├── design-brief.md         design brief for handing the project to a design AI
 ├── CLAUDE.md               this file
-├── .gitignore              .env, content.json, .venv, *.pyc
+├── handoff.md              session-to-session handoff (latest state + open items)
+├── .gitignore              .env, content.json, .venv, *.pyc, logo-*.png, *.docx
 └── server/
     ├── main.py             FastAPI + Telegram long-poll + admin commands + visa flow
     ├── requirements.txt    fastapi, uvicorn[standard], httpx, pydantic, python-dotenv
@@ -137,11 +143,12 @@ After cloning, on a fresh VPS:
 Each photo is full viewport (inset:0, cover) with warm gradient + paper-grain overlay on top.
 
 **Logo watermark (`.bg-layer .logo-blur`):**
-- Sits at `left: 62%, top: 50%` (slightly right of center)
-- `width: 230px` with `max-width: 60vw` cap
-- `opacity: 0.20`, `filter: blur(0.5px)`
-- Was historically much larger (280px × scale 2.4) which caused the wordmark to bleed off-screen.
-  Don't grow past ~65vw — the "SAUDIA SERVICE" wordmark in the PNG will start spilling.
+- Centered: `left: 50%, top: 50%`
+- `width: 500px` with `max-width: 92vw` cap
+- `opacity: 0.22`, `filter: saturate(0.85) brightness(1.2) blur(0.5px)`
+- History: started at 280px, was shrunk multiple times because the wordmark in
+  the PNG bleeds past the viewport at low max-width caps. Currently sits at
+  92vw which fills nicely on iPhone without spilling.
 
 **Icon style:** flat gold line icons, `stroke-width: 1.1`, defined inline as `<symbol id="i-...">`
 in `index.html`. Each visa/transfer references its icon by id via `VISA_ICONS` / `TRANSFER_ICONS`
@@ -149,10 +156,26 @@ maps in `data.js` — **icons are owned by the frontend**, never read from `cont
 so an admin price update via the bot can't accidentally change a card's design.
 
 Icon naming:
-- `i-*`        — general line icons (mosque, plane, hotel, bus, train, bag, kaaba, …)
+- `i-*`        — general line icons (mosque, plane, hotel, bus, train, bag, kaaba, phone,
+                 telegram, instagram, broadcast, etc.)
 - `h-*`        — large home-row icons (kaaba, passport, hotel, transport, chat)
 - `n-*`        — small bottom-tab icons (home, pkg, visa, hotel, transfer, chat)
 - `s-*`        — never used in prod (status bar icons, only in the design mockup)
+
+**Telegram fullscreen + safe-area:**
+- `app.js` calls `tg.requestFullscreen()` (Bot API 8.0+) so the in-chat menu
+  button also opens full-screen, not just the Main Mini App entry.
+- `--tg-top` CSS var = `safeAreaInset.top + contentSafeAreaInset.top`. Applied
+  as `padding-top` on `#content`, so the topbar/brand sit below the notch
+  and Telegram's overlaid close/menu controls.
+- Bottom: `#content` padding-bottom = `calc(108px + env(safe-area-inset-bottom))`
+  so the home indicator + bottom-nav don't clip the last row.
+
+**Body text sizing:**
+- Descriptive small text (subtitles, feature descriptions, package/visa/transfer/
+  hotel card subs) is **13px** — was 11.5/12px, bumped for readability.
+- UPPERCASE micro-labels (tiers, eyebrows, section labels, crumbs) stay
+  9–10.5px with 0.28–0.36em tracking — stylistic, do NOT bump.
 
 ---
 
@@ -165,9 +188,9 @@ the home menu. Back button always goes one level up (detail → list → home).
 |---|----|-------|--------|
 | I | `umra` | Umra paketlari | **complete** — 4 packages with detail screens + lead form |
 | II | `visa` | Vizalar | **complete** — 4 tariffs, detail screens, purchase via bot |
-| III | `hotels` | Mexmonxonalar | placeholder — awaiting content from client |
+| III | `hotels` | Mexmonxonalar | **complete** — VIP/Comfort/Standart/Ekonom sections per city, booking form. Hotel photos + map still pending per original brief |
 | IV | `transfer` | Transferlar | **complete** — 3 cards + order modal with Individual/Group tabs |
-| V | `contact` | Biz bilan bog'laning | minimal — direct Telegram link to manager |
+| V | `contact` | Biz bilan bog'laning | **complete** — phone, Telegram, B2B/news channel, Instagram cards |
 
 ### I. Umra packages — `UMRA_PACKAGES` in data.js (hardcoded, no API)
 
@@ -226,10 +249,63 @@ copper-tinted blocks with `i-warn` icon.
 4. User gets confirmation ("Ariza qabul qilindi"). State is wiped. /cancel anytime.
 5. Stale states GC'd after 30 minutes (`_FLOW_TTL`).
 
-### III. Mexmonxonalar — placeholder
+### III. Mexmonxonalar — hardcoded in `data.js`, no API yet
 
-`viewHotelsPlaceholder()` shows a "Tez orada" message + CTA. Waiting for client to send
-hotel list (name, city, stars, distance to Haram, short desc).
+Three-step navigation: root → city → sectioned list.
+
+**Root** (`viewHotelsRoot`): two big `.choice-card` buttons:
+- `Mexmonxonalar ro'yxati` → city picker
+- `Xarid qilish` → booking modal (via the `Buyurtma berish` CTA in `viewHotelsPurchase`)
+
+**City picker** (`viewHotelsCities`): two big buttons — `MAKKA` / `MADINA`.
+
+**Per-city list** (`viewHotelsList(city)`): renders each segment as a section
+with a framed `.hotel-frame` list of `.hotel-row` items separated by hairlines.
+A segment can be either a hotel list or a "contact" prompt (Ekonom).
+
+Data lives in `HOTELS_FALLBACK` + `HOTEL_SEGMENTS` in `data.js`. Each segment id:
+`vip`, `comfort`, `standart`, `ekonom`. Ekonom has `contact: true` + a `note` →
+renders the "biz bilan bog'laning" prompt instead of a list, in both cities.
+
+Current populated lists (client's words verbatim, possible typos preserved):
+- **Makka** — VIP 14, Comfort 11, Standart 11, Ekonom = contact prompt
+- **Madina** — VIP 7, Comfort 5, Standart 4, Ekonom = contact prompt
+  (Madina names came without tier assignment; segmentation done by Claude based on
+   brand prestige + position near Masjid an-Nabawi — client should review.)
+
+**Booking form** (`openHotelOrderModal` / `renderHotelOrderForm`) — fields in the order
+agreed with the client:
+1. `Telefon raqam` (UZ mask `+998 __ ___ __ __`)
+2. `Shahar` (Makka / Madina)
+3. `Mexmonxona nomi` (free text — placeholder "Swiss Al Maqom yoki boshqa")
+4. `Sana` — two-column Kirish / Chiqish (`kk/oo/yyyy` mask + validation, check-out > check-in)
+5. `Xona turi` (DBL / TRPL / QDRPL)
+6. `Xonalar soni` (numeric, default 1)
+7. `Ovqat turi` (BB — Nonushta / HB — Nonushta + kechki ovqat)
+8. `Qo'shimcha izoh` (optional)
+
+POST to `/api/order-hotel`. Admin gets:
+```
+🏨 Yangi mexmonxona buyurtmasi
+
+Mexmonxona: Swiss Al Maqom
+Shahar: Makka
+Sana: 12/04/2026 → 19/04/2026
+Xona turi: DBL
+Xonalar soni: 3
+Ovqatlanish: BB (Nonushta)
+
+Telefon: +998 90 123 45 67
+Telegram: @ali (id: …)
+
+Izoh: …
+```
+
+**Still missing per the original brief:** hotel detail screens with photos and
+locations ("bosilganda mexmonxona nomi, lakatsiyasi va rasmlar chiqishi kerak").
+Currently each row is a flat name only. Adding hotel detail = new tap target on
+`.hotel-row` + a `viewHotelDetail` view + photo asset pipeline + maybe Google
+Maps embed.
 
 ### IV. Transferlar — driven by `/api/content` (with `TRANSFERS_FALLBACK`)
 
@@ -267,10 +343,27 @@ Telegram: ...
 Izoh: ...
 ```
 
-### V. Aloqa — `viewContact()`
+### V. Aloqa — `viewContact()` with `CONTACTS` cards in `data.js`
 
-Static placeholder with one CTA — direct link to `CONTACT_URL` (manager's @t.me/...).
-No form. Waiting for full contact card content (phones, address, hours, socials, map).
+Driven by the `CONTACTS` array in `data.js`. Each entry has `{kind, label,
+value, href, icon, primary}`. Primary entries render first as larger cards;
+the rest sit under a `BOSHQA KANALLAR` section label.
+
+Current entries:
+- Primary: phone `+966 50 390 1777`, Telegram `@saudia_servicer`
+- Extras: B2B kanal `t.me/saudiaservicer`, Makka xabarlari channel, Instagram
+
+Tap on the phone card runs `tapPhone(num)` — copies the number to clipboard
+(with a toast `Raqam nusxalandi: …`) AND tries `window.location.href = tel:…`
+as a soft fallback. The reason for the copy fallback: Telegram WebView blocks
+`tel:` links on most clients, so a tap with only `href="tel:"` does nothing.
+
+`CONTACT_URL` constant in `data.js` is also updated to the manager's TG
+(`https://t.me/saudia_servicer`) — it's the default CTA target on every
+category screen ("Biz bilan bog'laning" buttons).
+
+Owner credit on home screen: `Ishlab chiqdi: @zayd_usamah` link (small,
+dimmed, opens `t.me/zayd_usamah`).
 
 ---
 
@@ -389,6 +482,28 @@ systemctl status saudia-bot --no-pager         # service health
 10. **GitHub Pages is no longer in the stack.** Frontend lives on the VPS under Nginx now.
     Don't suggest Pages-based setups; we abandoned that after buying the domain.
 
+11. **Menu button ≠ Main Mini App.** Telegram has two separate "surfaces":
+    - **Main Mini App** (profile button + `t.me/<bot>/app` link) — the BotFather
+      "Mini App full-screen" toggle applies here.
+    - **In-chat menu button** (left of the input field) — the toggle does NOT
+      apply. Without `requestFullscreen()` in code it opens as a half-height
+      panel. Owner kept reporting "opens as half-site for me, fullscreen for
+      others" — the fix was the JS-side `tg.requestFullscreen()` call.
+
+12. **Don't paste secrets into chat.** Owner already shared the old bot token
+    (`8897203944…`) and root VPS password in early sessions. They've been
+    documented for rotation. When migrating bots / changing tokens, always
+    instruct edits on the VPS (`nano /opt/saudia-service/.env`), never paste
+    the secret into chat.
+
+13. **When changing a bot in BotFather, the user's own Telegram caches the
+    menu button config.** A fresh menu-button URL may not show up for a few
+    minutes / until Telegram is fully closed and reopened. Don't debug
+    "menu button broken" before checking other accounts / cold-restarting TG.
+
+14. **`tel:` links are blocked in Telegram WebView.** Phone taps must fall
+    back to clipboard-copy + toast. See `tapPhone()` in `app.js`.
+
 ---
 
 ## 9. Codewords the owner uses
@@ -406,14 +521,47 @@ When a new big flow is proposed, suggest a codeword and don't implement until us
 
 ## 10. What's next (open work)
 
-- **Mexmonxonalar content** — waiting for hotel list from client (name/city/stars/distance/desc)
-- **Aloqa expansion** — phones, address, hours, socials, maybe map embed
-- **Auto-deploy** — possibly a GitHub webhook → VPS endpoint so the owner doesn't need to
-  SSH for every change. Not started, not asked yet.
-- **GitHub Action / cron for cert renewal sanity check** — certbot timer should already work
-  but verifying via logs on first renewal cycle would be nice.
-- **Bot token + VPS root password rotation** — the owner shared both in chat early on, so
-  they should be regenerated. Noted but not enforced.
+**Immediate / high-priority**
+
+- **Finish bot migration to `@Saudiaservice_bot`** — owner created the new bot,
+  set up Main Mini App via `/newapp` (URL `https://saudihizmat.fyi`), and set
+  the menu button. Still pending on the owner side: stop any old code that
+  polls the new bot's token (avoid 409), update `BOT_TOKEN` in `/opt/saudia-service/.env`,
+  run `deleteWebhook?drop_pending_updates=true`, restart `saudia-bot`, press `/start`
+  on the new bot so the admin chat is unblocked, then `/revoke` the leaked old token
+  (`8897203944…`) in BotFather.
+- **VPS root password rotation** — still pending; was shared in chat. Move
+  to key-only SSH (`PasswordAuthentication no`) when rotating.
+- **Security audit** — owner installed the `secure-coding-trio` skill in
+  `~/.claude/skills/`. In the next fresh session ask for a full audit using
+  the Security-reviewer role (see `handoff.md` § "Security audit pending").
+
+**Per category**
+
+- **Hotels — detail screens with photos + location.** The original brief asked
+  for "bosilganda mexmonxona nomi, lakatsiyasi va rasmlar chiqishi kerak".
+  Currently each `.hotel-row` is just a name. Need: tap target → `viewHotelDetail`
+  with image gallery + Google Maps embed / coords + short description. Photo
+  asset pipeline (local in `assets/hotels/<city>/<id>/`).
+- **Madina hotel categorization review.** Client sent the Madina list without
+  tier assignment; segmentation is my guess. Get client to confirm or move
+  hotels between VIP/Comfort/Standart.
+- **Spelling normalization for hotel/visa brand names.** Many entries have
+  client typos preserved verbatim (Fermont → Fairmont, Adress → Address,
+  Mowenpick → Mövenpick, Marriot → Marriott, etc.). Per past-mistake #1 we
+  don't invent, but typos in real brand names look unprofessional on a
+  premium app. Confirm with client first, then fix.
+- **Aloqa map embed / address / hours** — optional; current cards cover the
+  essentials.
+
+**Nice to have**
+
+- **Auto-deploy** via a GitHub webhook → VPS endpoint, so the owner doesn't
+  need to SSH for every change. Not started, not asked yet.
+- **GitHub Action / cron for cert renewal sanity check** — certbot timer
+  works but verifying via logs on the first renewal cycle would be nice.
+- **Rebuild `saudia-service.html` bundle.** It's been stale since the recent
+  hotels/contact/fullscreen work. Run `python3 build.py` and commit when needed.
 
 ---
 
