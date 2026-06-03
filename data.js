@@ -269,9 +269,28 @@ const HOTELS_FALLBACK = {
     ekonom: [],
   },
   madina: {
-    vip: [],
-    comfort: [],
-    standart: [],
+    vip: [
+      "Intercontinental Dar al Hijra",
+      "Anwar Al Madinah Mowenpick",
+      "Hotel Oberai",
+      "Pulman Zam zam Madina",
+      "Dar Taqva Madina",
+      "Madina Hilton",
+      "Sofitel Hotel",
+    ],
+    comfort: [
+      "Rotana al Manakha",
+      "Novotel Madina",
+      "Makareem Suit Hotel",
+      "International Dar Al Iyman",
+      "Concorde Hotel",
+    ],
+    standart: [
+      "Hotel Emar",
+      "Al Aqeem Madina",
+      "Maden Hotels 4x",
+      "Panusuala Worth",
+    ],
     ekonom: [],
   },
 };
