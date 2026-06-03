@@ -1,4 +1,4 @@
-# Handover
+# Handoff
 
 Running log of cross-session context — what changed, why, and what's still open.
 Newest entry on top. Keep `CLAUDE.md` as the canonical project reference; this

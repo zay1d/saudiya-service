@@ -432,7 +432,7 @@ When a new big flow is proposed, suggest a codeword and don't implement until us
 
 ### Security audit (2026-06-03) — remaining hardening
 
-A full security review was done (see `handover.md`). The app logic is solid (correct initData
+A full security review was done (see `handoff.md`). The app logic is solid (correct initData
 HMAC, consistent output escaping). Open hardening items, by priority:
 - ✅ **DONE** — backend no longer runs as root (now `saudia` + systemd sandbox).
 - **nginx security headers** — no HSTS / CSP / `X-Content-Type-Options` yet. Edit
