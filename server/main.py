@@ -98,6 +98,51 @@ async def update_content(mutator) -> dict:
         return content
 
 
+# ====================  tracks.json (privacy-respecting usage stats)  ====================
+
+TRACKS_PATH = BASE_DIR / "tracks.json"
+_tracks_lock = asyncio.Lock()
+_TRACK_RETENTION_DAYS = 180
+_VALID_TRACK_CATEGORIES = {"umra", "visa", "hotels", "transfer", "contact"}
+
+
+def _read_tracks() -> dict:
+    if not TRACKS_PATH.exists():
+        return {"users": [], "contacts": 0, "daily": {}}
+    try:
+        with TRACKS_PATH.open(encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {"users": [], "contacts": 0, "daily": {}}
+
+
+def _write_tracks_atomic(data: dict) -> None:
+    dir_ = str(TRACKS_PATH.parent)
+    fd, tmp = tempfile.mkstemp(dir=dir_, prefix=".tracks.", suffix=".json.tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+        os.replace(tmp, TRACKS_PATH)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+async def load_tracks() -> dict:
+    async with _tracks_lock:
+        return _read_tracks()
+
+
+async def update_tracks(mutator) -> None:
+    async with _tracks_lock:
+        tracks = _read_tracks()
+        mutator(tracks)
+        _write_tracks_atomic(tracks)
+
+
 # ====================  Telegram initData verification  ====================
 
 def verify_init_data(init_data: str, bot_token: str) -> Optional[dict]:
@@ -260,6 +305,7 @@ HELP_ADMIN = (
     "• <code>/setprice &lt;viza_id&gt; &lt;narx&gt;</code> — narxni o‘zgartirish\n"
     "  masalan: <code>/setprice umra 200</code>\n"
     "• <code>/toggle &lt;viza_id&gt;</code> — vizani yashirish / ko‘rsatish\n"
+    "• <code>/stats</code> — foydalanish statistikasi\n"
     "• <code>/help</code> — shu xabar\n\n"
     "<b>Viza ID lari:</b>\n"
     "• <code>umra</code>\n"
@@ -317,6 +363,56 @@ async def _cmd_setprice(args: list[str]) -> str:
 
     v = next(v for v in new_content["visas"] if v["id"] == visa_id)
     return f"✓ <b>{_h(v['title'])}</b> → <b>${price}</b>"
+
+
+async def _cmd_stats() -> str:
+    tracks = await load_tracks()
+    daily = tracks.get("daily", {})
+    today = time.strftime("%Y-%m-%d", time.gmtime())
+    today_data = daily.get(today, {})
+
+    def aggregate(days: int):
+        cutoff = time.strftime("%Y-%m-%d", time.gmtime(time.time() - days * 86400))
+        users_set: set[str] = set()
+        opens = 0
+        for d, info in daily.items():
+            if d >= cutoff:
+                users_set.update(info.get("users", []))
+                opens += info.get("opens", 0)
+        return len(users_set), opens
+
+    u7, o7 = aggregate(7)
+    u30, o30 = aggregate(30)
+
+    cats = today_data.get("categories", {})
+    cats_str = ", ".join(f"{k} {v}" for k, v in sorted(cats.items(), key=lambda x: -x[1]))
+
+    locs = today_data.get("locations", {})
+    top_locs = sorted(locs.items(), key=lambda x: -x[1])[:5]
+
+    lines = [
+        "📊 <b>Saudia Service · Statistika</b>",
+        "",
+        f"<b>Jami foydalanuvchilar:</b> {len(tracks.get('users', []))}",
+        f"<b>Jami buyurtmalar:</b> {tracks.get('contacts', 0)}",
+        "",
+        f"<b>Bugun ({today}):</b>",
+        f"  · Foydalanuvchilar: {len(today_data.get('users', []))}",
+        f"  · Ochildi: {today_data.get('opens', 0)}",
+    ]
+    if cats_str:
+        lines.append(f"  · Kategoriyalar: {_h(cats_str)}")
+    if today_data.get("contacts", 0) > 0:
+        lines.append(f"  · Aloqalar: {today_data['contacts']} ariza")
+    if top_locs:
+        lines.append("  · TOP havolalar:")
+        for i, (url, n) in enumerate(top_locs, 1):
+            lines.append(f"    {i}. {_h(url)} — {n} ta")
+    lines.append("")
+    lines.append(f"<b>Oxirgi 7 kun:</b>  {u7} foydalanuvchi, {o7} ochilish")
+    lines.append(f"<b>Oxirgi 30 kun:</b> {u30} foydalanuvchi, {o30} ochilish")
+
+    return "\n".join(lines)
 
 
 async def _cmd_toggle(args: list[str]) -> str:
@@ -492,6 +588,8 @@ async def handle_update(update: dict) -> None:
         reply = await _cmd_setprice(args)
     elif cmd == "/toggle":
         reply = await _cmd_toggle(args)
+    elif cmd == "/stats":
+        reply = await _cmd_stats()
     else:
         return  # silently ignore unknown admin chatter
 
@@ -602,6 +700,12 @@ class TransferOrderIn(BaseModel):
     group_size: int = Field(default=0, ge=0, le=500)
     organization: str = Field(default="", max_length=120)
     comment: str = Field(default="", max_length=1000)
+    init_data: str = Field(..., max_length=4000)
+
+
+class TrackIn(BaseModel):
+    event: str = Field(..., pattern="^(open|category|location|contact)$")
+    data: str = Field(default="", max_length=300)
     init_data: str = Field(..., max_length=4000)
 
 
@@ -741,6 +845,71 @@ async def submit_hotel_order(order: HotelOrderIn):
         log.exception("Telegram API error")
         raise HTTPException(status_code=502, detail="Telegram'ga jo‘natishda xatolik") from e
 
+    return {"ok": True}
+
+
+@app.post("/api/track")
+async def submit_track(t: TrackIn):
+    """
+    Privacy-respecting usage tracking. Aggregates by day only — no timestamps,
+    no IPs, no user-agents. Admins (ADMIN_CHAT_IDS) are silently excluded so
+    their own testing doesn't skew the numbers.
+    """
+    parsed = verify_init_data(t.init_data, BOT_TOKEN)
+    if parsed is None:
+        return {"ok": True}  # never reveal validation state on a metrics endpoint
+    try:
+        user = json.loads(parsed.get("user", "{}"))
+    except json.JSONDecodeError:
+        return {"ok": True}
+    tg_id = user.get("id")
+    if tg_id is None:
+        return {"ok": True}
+    if str(tg_id) in ADMIN_CHAT_IDS:
+        return {"ok": True}
+
+    today = time.strftime("%Y-%m-%d", time.gmtime())
+    user_key = str(tg_id)
+    event = t.event
+    data = t.data.strip()
+
+    def mutate(tracks):
+        tracks.setdefault("users", [])
+        tracks.setdefault("contacts", 0)
+        tracks.setdefault("daily", {})
+
+        if user_key not in tracks["users"]:
+            tracks["users"].append(user_key)
+
+        day = tracks["daily"].setdefault(today, {})
+        day.setdefault("users", [])
+        day.setdefault("opens", 0)
+        day.setdefault("categories", {})
+        day.setdefault("locations", {})
+        day.setdefault("contacts", 0)
+
+        if user_key not in day["users"]:
+            day["users"].append(user_key)
+
+        if event == "open":
+            day["opens"] = day.get("opens", 0) + 1
+        elif event == "category" and data in _VALID_TRACK_CATEGORIES:
+            day["categories"][data] = day["categories"].get(data, 0) + 1
+        elif event == "location" and data:
+            day["locations"][data] = day["locations"].get(data, 0) + 1
+        elif event == "contact":
+            tracks["contacts"] = tracks.get("contacts", 0) + 1
+            day["contacts"] = day.get("contacts", 0) + 1
+
+        # 180-day retention on the daily breakdown; running totals stay intact.
+        cutoff = time.strftime("%Y-%m-%d", time.gmtime(time.time() - _TRACK_RETENTION_DAYS * 86400))
+        for k in [k for k in tracks["daily"] if k < cutoff]:
+            del tracks["daily"][k]
+
+    try:
+        await update_tracks(mutate)
+    except Exception:
+        log.exception("track write failed")
     return {"ok": True}
 
 

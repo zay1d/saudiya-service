@@ -24,6 +24,14 @@ to `@Saudiaservice_bot`.
 
 (Reverse-chronological, last ~30 commits.)
 
+-1. **Usage stats — `статистика1`.** Privacy-respecting tracking: day-only
+    aggregates, no timestamps/IPs/UAs. `tracks.json` next to `content.json`,
+    atomic writes, 180-day retention on `daily{}`, lifetime totals kept
+    forever. Admins are filtered server-side. New `/api/track` endpoint, new
+    `/stats` admin command, 4 frontend track hooks (`open`, `category`,
+    `location`, `contact`). See CLAUDE.md § 6 "Usage stats" for shape and
+    event semantics.
+
 0. **Backend hardening — runs as unprivileged `saudia` user, not root.**
    `saudia-bot.service` now has `User/Group=saudia` plus sandbox directives
    (`NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome`, `PrivateTmp`,

@@ -42,6 +42,27 @@
     hotelsCity: null,        // null | "makka" | "madina"
   };
 
+  // ---------- analytics tracking ----------
+  // Lightweight, privacy-respecting: only event + optional string, never PII.
+  // Admins are filtered out server-side via ADMIN_CHAT_IDS, so their
+  // testing doesn't skew the numbers. Failures are swallowed — tracking must
+  // never crash UX.
+  async function track(event, data) {
+    if (!tg || !tg.initData) return;
+    try {
+      await fetch(`${API_URL}/track`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event, data: data || "", init_data: tg.initData }),
+        keepalive: true,
+      });
+    } catch (_) { /* swallow */ }
+  }
+  const trackOpen     = ()    => track("open");
+  const trackCategory = (id)  => track("category", id);
+  const trackLocation = (url) => track("location", url);
+  const trackContact  = (kind) => track("contact", kind);
+
   // ---------- content fetch ----------
 
   let BOT_USERNAME = "";
@@ -888,6 +909,7 @@
         const body = await resp.json().catch(() => ({}));
         throw new Error(body.detail || `HTTP ${resp.status}`);
       }
+      trackContact("transfer");
       renderLeadStatus(
         "success",
         "Ariza qabul qilindi",
@@ -1086,6 +1108,7 @@
         const body = await resp.json().catch(() => ({}));
         throw new Error(body.detail || `HTTP ${resp.status}`);
       }
+      trackContact("hotel");
       renderLeadStatus(
         "success",
         "Ariza qabul qilindi",
@@ -1224,6 +1247,7 @@
         const body = await resp.json().catch(() => ({}));
         throw new Error(body.detail || `HTTP ${resp.status}`);
       }
+      trackContact("lead");
       renderLeadStatus(
         "success",
         "Rahmat!",
@@ -1249,8 +1273,8 @@
     const id = t.dataset.id;
 
     switch (action) {
-      case "open-category": goCategory(id); break;
-      case "switch-tab":    goCategory(id); break;
+      case "open-category": trackCategory(id); goCategory(id); break;
+      case "switch-tab":    trackCategory(id); goCategory(id); break;
       case "open-package":  goPackage(id); break;
       case "open-visa":     goVisa(id); break;
       case "go-back":       goBack(); break;
@@ -1267,11 +1291,18 @@
     }
   });
 
+  // Track outbound link / contact card taps so /stats can show top channels.
+  document.addEventListener("click", (ev) => {
+    const a = ev.target.closest(".contact-card[href], .cta-simple[href]");
+    if (a) trackLocation(a.getAttribute("href"));
+  });
+
   // Telegram WebView blocks tel: links on most clients, so the dependable
   // action is to copy the number and show a confirmation. We still attempt
   // a system dial as a no-op on platforms where it fails.
   function tapPhone(displayNum) {
     const dialNum = String(displayNum || "").replace(/[^+\d]/g, "");
+    trackLocation("tel:" + dialNum);
     let copied = false;
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -1324,6 +1355,7 @@
     // Render fallback immediately so the screen isn't blank during fetch.
     goHome();
     await fetchContent();
+    trackOpen();
     // Re-render current screen if it's data-driven.
     if (state.screen === "category" && state.activeCategory === "visa") {
       contentEl.innerHTML = viewCategory("visa");

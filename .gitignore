@@ -4,6 +4,10 @@
 .env.*.local
 server/.env
 
+# Live admin-editable data + usage stats (seeded/created on the VPS, not in git)
+content.json
+tracks.json
+
 # Python
 __pycache__/
 *.pyc

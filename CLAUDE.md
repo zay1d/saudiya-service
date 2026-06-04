@@ -28,6 +28,7 @@ the repo so the next session has the same picture.
 | TLS | Let's Encrypt for `saudihizmat.fyi` + `www.saudihizmat.fyi`, auto-renew via `certbot.timer` |
 | Env file | `/opt/saudia-service/.env` (chmod 600, **gitignored**, never put in repo) |
 | Content store | `/opt/saudia-service/content.json` (live visa/transfer data, **gitignored**) — seeded from `server/content.default.json` on first boot |
+| Usage stats   | `/opt/saudia-service/tracks.json` (daily-aggregate counts, **gitignored**) — auto-created on first event |
 | Telegram bot | **migrating** from old saudia bot (token `8897203944…`, leaked in chat) to `@Saudiaservice_bot`. After migration: rotate the old one via `/revoke` |
 | Admin chat | configured in `.env` as `ADMIN_CHAT_ID` (comma-separated for multiple admins). Owner's chat id: `6136579036` |
 | Bot polling | long-polling started in FastAPI `lifespan`, not webhook |
@@ -51,8 +52,9 @@ FastAPI (uvicorn) ──┬── GET  /api/health
                     ├── POST /api/lead           (Umra package interest)
                     ├── POST /api/order-transfer (transfer order, individual or group)
                     ├── POST /api/order-hotel    (hotel booking: name + dates + room + meal)
+                    ├── POST /api/track          (usage event: open/category/location/contact)
                     └── background task: Telegram long-poll loop
-                            ├── admin commands (/prices, /setprice, /toggle, /help)
+                            ├── admin commands (/prices, /setprice, /toggle, /stats, /help)
                             └── visa purchase flow (state machine)
 
 Telegram Bot API ◄──── outgoing (sendMessage, sendPhoto, sendDocument)
@@ -379,11 +381,46 @@ Admin (chat ids listed in `ADMIN_CHAT_ID`) can edit via the bot:
 - `/prices` → list visas with current prices and active/hidden state
 - `/setprice <visa_id> <price>` → change one visa's price (e.g. `/setprice umra 200`)
 - `/toggle <visa_id>` → hide/show a visa on the frontend
+- `/stats` → usage statistics (today, last 7 days, last 30 days, totals)
 
 Visa ids: `umra`, `tourist_multi`, `tourist_single`, `business`.
 
 **Frontend-owned design** (icons, layout) cannot be changed via bot. Admin only edits
 content — prices, active flag. Future: same pattern for transfers, hotel list, etc.
+
+### Usage stats (privacy-respecting)
+
+`tracks.json` lives on the VPS next to `content.json` (gitignored, atomic
+writes under `asyncio.Lock`). No timestamps, no IPs, no user-agents — only
+day-level aggregates. Admins (`ADMIN_CHAT_IDS`) are filtered out server-side
+on every `/api/track` call so their own testing doesn't skew the numbers.
+
+Shape:
+```json
+{
+  "users": ["<tg_id>", ...],          // all-time unique users
+  "contacts": 32,                     // all-time successful submissions
+  "daily": {
+    "2026-06-03": {
+      "users": ["<tg_id>", ...],
+      "opens": 41,
+      "categories": {"umra": 14, ...},
+      "locations": {"https://t.me/...": 5, ...},
+      "contacts": 3
+    },
+    ...
+  }
+}
+```
+
+Retention: last 180 days of `daily`. Lifetime `users` and `contacts` totals
+are never pruned.
+
+Events emitted by the frontend (`track()` in `app.js`):
+- `open` — once per app launch, fired after `fetchContent()`
+- `category` — on tap of a home menu row or bottom-tab
+- `location` — on tap of a contact card (Aloqa) or a "Biz bilan bog'laning" CTA
+- `contact` — on successful POST of `/api/lead`, `/api/order-transfer`, `/api/order-hotel`
 
 ---
 
@@ -514,6 +551,7 @@ expensive flows mid-conversation):
 - `страницадлясвязи1` — start the lead form + backend (✅ done)
 - `визыпаспорт1`     — start the visa purchase bot dialog with passport upload (✅ done)
 - `вкладкигруппа1`   — add Individual/Guruh tabs to the transfer order form (✅ done)
+- `статистика1`      — privacy-respecting usage stats + `/stats` admin command (✅ done)
 
 When a new big flow is proposed, suggest a codeword and don't implement until used.
 
