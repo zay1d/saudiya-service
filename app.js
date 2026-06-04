@@ -112,7 +112,6 @@
 
       <div class="home-foot">
         <div class="small">Toshkent · Madina · Makka</div>
-        <a class="credit" href="https://t.me/zayd_usamah" target="_blank" rel="noopener">Ishlab chiqdi: @zayd_usamah</a>
       </div>
     `;
   }
