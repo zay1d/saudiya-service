@@ -375,12 +375,14 @@
   function viewHotelsList(city) {
     const cityLabel = city === "makka" ? "Makka" : "Madina";
     const cityData = (HOTELS && HOTELS[city]) || {};
+    const segments = (HOTEL_SEGMENTS && HOTEL_SEGMENTS[city]) || [];
+    const heading = (seg) => seg.label ? `<p class="section-label">${esc(seg.label)}</p>` : "";
 
-    const sections = HOTEL_SEGMENTS.map((seg) => {
+    const sections = segments.map((seg) => {
       if (seg.contact) {
         return `
           <section class="hotel-section">
-            <p class="section-label">${esc(seg.label)}</p>
+            ${heading(seg)}
             <div class="hotel-contact">
               <p>${esc(seg.note || "")}</p>
               <a class="cta cta-simple" href="${CONTACT_URL}" target="_blank" rel="noopener">${CONTACT_LABEL}</a>
@@ -393,7 +395,7 @@
       if (items.length === 0) {
         return `
           <section class="hotel-section">
-            <p class="section-label">${esc(seg.label)}</p>
+            ${heading(seg)}
             <div class="hotel-empty">Tez orada joylanadi</div>
           </section>
         `;
@@ -407,17 +409,21 @@
 
       return `
         <section class="hotel-section">
-          <p class="section-label">${esc(seg.label)}</p>
+          ${heading(seg)}
           <div class="hotel-frame">${rows}</div>
         </section>
       `;
     }).join("");
 
+    const meta = city === "makka"
+      ? "Toifa bo‘yicha taqsimlangan"
+      : "Masjidi Nabawiy yaqinida";
+
     return `
       <div class="crumb"><b>Asosiy</b><span class="sep">/</span>Mexmonxonalar<span class="sep">/</span>${esc(cityLabel)}</div>
       <div class="page-title">
         <h1>${esc(cityLabel)}</h1>
-        <div class="meta">Toifa bo‘yicha taqsimlangan</div>
+        <div class="meta">${esc(meta)}</div>
       </div>
       ${sections}
     `;

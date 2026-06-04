@@ -24,6 +24,16 @@ to `@Saudiaservice_bot`.
 
 (Reverse-chronological, last ~30 commits.)
 
+-2. **Admin broadcast — `/broadcast`.** Two-step admin command: send
+    `/broadcast`, then send the message to broadcast (text/photo/file/video).
+    Bot copies it to every user in `tracks.json` via `copyMessage`, throttled
+    to ~25/sec, and reports `sent / blocked / failed / total`. Admins are
+    excluded from the recipient list. /cancel exits before sending.
+
+-1.5. **Madina hotels — flat list.** `HOTEL_SEGMENTS` is now per-city. Madina
+     shows all 16 hotels as a single unlabeled list (no VIP/Comfort/Standart
+     split) per the client's request. Makka still tiered.
+
 -1. **Usage stats — `статистика1`.** Privacy-respecting tracking: day-only
     aggregates, no timestamps/IPs/UAs. `tracks.json` next to `content.json`,
     atomic writes, 180-day retention on `daily{}`, lifetime totals kept

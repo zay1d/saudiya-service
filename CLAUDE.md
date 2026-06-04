@@ -269,11 +269,15 @@ Data lives in `HOTELS_FALLBACK` + `HOTEL_SEGMENTS` in `data.js`. Each segment id
 `vip`, `comfort`, `standart`, `ekonom`. Ekonom has `contact: true` + a `note` →
 renders the "biz bilan bog'laning" prompt instead of a list, in both cities.
 
+`HOTEL_SEGMENTS` is now **per-city**: `{ makka: [...], madina: [...] }`. Makka
+is split into 4 tiered sections; Madina is rendered as a single unlabeled flat
+list (segment id `list`, no `label`) plus the Ekonom contact prompt. A segment
+without a `label` skips its section heading in `viewHotelsList`.
+
 Current populated lists (client's words verbatim, possible typos preserved):
 - **Makka** — VIP 14, Comfort 11, Standart 11, Ekonom = contact prompt
-- **Madina** — VIP 7, Comfort 5, Standart 4, Ekonom = contact prompt
-  (Madina names came without tier assignment; segmentation done by Claude based on
-   brand prestige + position near Masjid an-Nabawi — client should review.)
+- **Madina** — 16 hotels as a single unlabeled list (no tier split), Ekonom
+  = contact prompt. The client asked to keep Madina flat.
 
 **Booking form** (`openHotelOrderModal` / `renderHotelOrderForm`) — fields in the order
 agreed with the client:
@@ -382,6 +386,12 @@ Admin (chat ids listed in `ADMIN_CHAT_ID`) can edit via the bot:
 - `/setprice <visa_id> <price>` → change one visa's price (e.g. `/setprice umra 200`)
 - `/toggle <visa_id>` → hide/show a visa on the frontend
 - `/stats` → usage statistics (today, last 7 days, last 30 days, totals)
+- `/broadcast` → send a message to every known user. Two-step: admin sends
+  `/broadcast`, then sends the actual message (text, photo, file, video,
+  anything) which the bot copies to all chat_ids in `tracks.json` via
+  `copyMessage`. Throttled to ~25/sec; admin gets a final report
+  (`sent` / `blocked` / `failed` / `total`). /cancel exits the flow before
+  the payload is sent. Admins themselves are excluded from the recipient list.
 
 Visa ids: `umra`, `tourist_multi`, `tourist_single`, `business`.
 

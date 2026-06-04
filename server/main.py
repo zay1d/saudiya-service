@@ -306,6 +306,7 @@ HELP_ADMIN = (
     "  masalan: <code>/setprice umra 200</code>\n"
     "• <code>/toggle &lt;viza_id&gt;</code> — vizani yashirish / ko‘rsatish\n"
     "• <code>/stats</code> — foydalanish statistikasi\n"
+    "• <code>/broadcast</code> — hamma foydalanuvchilarga xabar yuborish\n"
     "• <code>/help</code> — shu xabar\n\n"
     "<b>Viza ID lari:</b>\n"
     "• <code>umra</code>\n"
@@ -436,6 +437,56 @@ async def _cmd_toggle(args: list[str]) -> str:
         return f"❌ Viza topilmadi: <code>{_h(visa_id)}</code>"
     state = "ko‘rsatildi ✅" if found["active"] else "yashirildi ⛔️"
     return f"<b>{_h(found['title'])}</b> {state}"
+
+
+# ====================  Admin broadcast flow (per-admin state machine) =====
+
+# Set when an admin types /broadcast — next message they send is forwarded
+# to every known user via copyMessage. In-memory; lost on restart, fine.
+_admin_flow: dict[int, dict] = {}
+
+
+async def _copy_message(
+    client: httpx.AsyncClient, target_chat_id: str, from_chat_id: int, message_id: int
+) -> dict:
+    r = await client.post(f"{API_BASE}/copyMessage", json={
+        "chat_id": target_chat_id,
+        "from_chat_id": from_chat_id,
+        "message_id": message_id,
+    })
+    return r.json()
+
+
+async def _broadcast_message(admin_chat_id: int, source_msg: dict) -> dict:
+    """Copy the admin's message to every known user. Returns counts."""
+    tracks = await load_tracks()
+    user_ids = [u for u in tracks.get("users", []) if u and u != str(admin_chat_id)]
+    sent = 0
+    blocked = 0
+    failed = 0
+    source_message_id = source_msg["message_id"]
+
+    async with httpx.AsyncClient(timeout=15) as client:
+        for uid in user_ids:
+            try:
+                data = await _copy_message(client, uid, admin_chat_id, source_message_id)
+                if data.get("ok"):
+                    sent += 1
+                else:
+                    code = data.get("error_code", 0)
+                    desc = (data.get("description") or "").lower()
+                    if code == 403 or "blocked" in desc or "not found" in desc or "deactivated" in desc:
+                        blocked += 1
+                    else:
+                        failed += 1
+                        log.warning("broadcast to %s failed: %s", uid, desc[:140])
+            except Exception:
+                failed += 1
+                log.exception("broadcast send crashed")
+            # ~25/sec to stay safely under Telegram's per-bot send limits.
+            await asyncio.sleep(0.04)
+
+    return {"sent": sent, "blocked": blocked, "failed": failed, "total": len(user_ids)}
 
 
 # ====================  Visa purchase flow (per-user state machine) ====================
@@ -572,6 +623,11 @@ async def handle_update(update: dict) -> None:
         await _handle_user_message(chat_id, msg, user)
         return
 
+    # Admin is mid-broadcast? capture their next message as the payload.
+    if chat_id in _admin_flow:
+        await _handle_admin_flow(chat_id, msg)
+        return
+
     # Admin only handles commands; everything else is silently ignored.
     if not text:
         return
@@ -590,10 +646,51 @@ async def handle_update(update: dict) -> None:
         reply = await _cmd_toggle(args)
     elif cmd == "/stats":
         reply = await _cmd_stats()
+    elif cmd == "/broadcast":
+        _admin_flow[chat_id] = {"step": "awaiting_broadcast"}
+        reply = (
+            "📢 <b>Hammaga yuborish</b>\n\n"
+            "Hozir yuboradigan xabarni qaytaring — matn, rasm, fayl, video; "
+            "istalgan turdagi xabar qabul qilinadi.\n\n"
+            "Bekor qilish uchun /cancel"
+        )
     else:
         return  # silently ignore unknown admin chatter
 
     await tg_send_message(chat_id, reply)
+
+
+async def _handle_admin_flow(chat_id: int, msg: dict) -> None:
+    """Admin is in a multi-step state (currently only broadcast)."""
+    state = _admin_flow.get(chat_id)
+    if not state:
+        return
+    text = (msg.get("text") or "").strip()
+
+    if state.get("step") == "awaiting_broadcast":
+        if text == "/cancel":
+            _admin_flow.pop(chat_id, None)
+            await tg_send_message(chat_id, "Bekor qilindi.")
+            return
+        if text.startswith("/"):
+            await tg_send_message(
+                chat_id,
+                "Bu buyruq. Yuborish uchun oddiy xabar qaytaring "
+                "(matn / rasm / fayl). Bekor qilish — /cancel",
+            )
+            return
+        # Anything else is the broadcast payload.
+        _admin_flow.pop(chat_id, None)
+        await tg_send_message(chat_id, "Yuborilmoqda... bu biroz vaqt oladi.")
+        result = await _broadcast_message(chat_id, msg)
+        await tg_send_message(
+            chat_id,
+            "📢 <b>Yuborish yakunlandi</b>\n\n"
+            f"✅ Yuborildi: <b>{result['sent']}</b>\n"
+            f"⛔️ Bloklagan: <b>{result['blocked']}</b>\n"
+            f"❌ Xatolik: <b>{result['failed']}</b>\n"
+            f"Jami foydalanuvchilar: <b>{result['total']}</b>",
+        )
 
 
 # ====================  Bot long-polling loop  ====================

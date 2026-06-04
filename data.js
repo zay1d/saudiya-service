@@ -209,18 +209,28 @@ const ROUTE_CITIES = [
 ];
 
 // ===== Hotels =====
-// Segments are rendered as section labels (VIP / Comfort / Standart / Ekonom).
-// Each segment maps to a flat list of hotel names for the city.
+// HOTEL_SEGMENTS is keyed by city — Makka is tiered (VIP/Comfort/Standart/Ekonom);
+// Madina is shown as a single unlabeled list plus the Ekonom contact prompt.
 // A segment may instead be { contact: true, note } — it renders a
-// "biz bilan bog'laning" block instead of a list (used for Ekonom).
+// "biz bilan bog'laning" block instead of a list (used for Ekonom in both cities).
+// A segment with no `label` skips its section heading on the screen.
 // Empty list segments render a "Tez orada joylanadi" stub.
-const HOTEL_SEGMENTS = [
-  { id: "vip",      label: "VIP" },
-  { id: "comfort",  label: "Comfort" },
-  { id: "standart", label: "Standart" },
-  { id: "ekonom",   label: "Ekonom", contact: true,
-    note: "Makka va Madinadagi ekonom mexmonxonalar uchun biz bilan bog‘laning" },
-];
+const _EKONOM_SEG = {
+  id: "ekonom", label: "Ekonom", contact: true,
+  note: "Makka va Madinadagi ekonom mexmonxonalar uchun biz bilan bog‘laning",
+};
+const HOTEL_SEGMENTS = {
+  makka: [
+    { id: "vip",      label: "VIP" },
+    { id: "comfort",  label: "Comfort" },
+    { id: "standart", label: "Standart" },
+    _EKONOM_SEG,
+  ],
+  madina: [
+    { id: "list" },   // single flat list, no section heading
+    _EKONOM_SEG,
+  ],
+};
 
 const HOTELS_FALLBACK = {
   makka: {
@@ -269,27 +279,23 @@ const HOTELS_FALLBACK = {
     ekonom: [],
   },
   madina: {
-    vip: [
+    list: [
       "Intercontinental Dar al Hijra",
+      "International Dar Al Iyman",
       "Anwar Al Madinah Mowenpick",
       "Hotel Oberai",
       "Pulman Zam zam Madina",
+      "Panusuala Worth",
       "Dar Taqva Madina",
-      "Madina Hilton",
-      "Sofitel Hotel",
-    ],
-    comfort: [
-      "Rotana al Manakha",
-      "Novotel Madina",
       "Makareem Suit Hotel",
-      "International Dar Al Iyman",
-      "Concorde Hotel",
-    ],
-    standart: [
+      "Madina Hilton",
+      "Rotana al Manakha",
+      "Sofitel Hotel",
+      "Novotel Madina",
       "Hotel Emar",
+      "Concorde Hotel",
       "Al Aqeem Madina",
       "Maden Hotels 4x",
-      "Panusuala Worth",
     ],
     ekonom: [],
   },
