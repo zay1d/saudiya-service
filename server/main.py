@@ -247,19 +247,33 @@ async def send_to_admins(text: str, *, reply_markup: Optional[dict] = None) -> N
 
 
 def _user_chat_markup(user_id: int | str) -> dict:
-    """Inline keyboard with one button that opens a private chat with the user.
+    """Inline keyboard with one button that lets the admin open a private
+    chat with the form-submitter.
 
-    Telegram silently strips inline mentions (`<a href="tg://user?id=N">`) when
-    the bot has never interacted with the target user — which is exactly the
-    case for everyone who filled a Mini App form without messaging the bot.
-    A button with the same URL is treated more permissively by Telegram clients
-    and opens the chat in practice.
+    `tg://user?id=N` is not accepted in InlineKeyboardButton.url (Telegram
+    rejects the message with BUTTON_URL_INVALID), so we use a callback_data
+    button. When the admin taps it, `_handle_chat_callback` replies in the
+    admin's own chat with an inline `<a href="tg://user?id=N">…</a>` link,
+    which IS allowed in HTML message bodies and opens the chat in clients
+    that can resolve the user.
     """
     return {
         "inline_keyboard": [[
-            {"text": "💬 Foydalanuvchi bilan suhbat", "url": f"tg://user?id={user_id}"}
+            {"text": "💬 Foydalanuvchi bilan suhbat", "callback_data": f"chat:{user_id}"}
         ]]
     }
+
+
+async def tg_answer_callback_query(callback_query_id: str, text: str = "") -> None:
+    body: dict[str, Any] = {"callback_query_id": callback_query_id}
+    if text:
+        body["text"] = text
+        body["show_alert"] = False
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(f"{API_BASE}/answerCallbackQuery", json=body)
+    except Exception:
+        log.exception("answerCallbackQuery failed")
 
 
 async def forward_visa_application(state: dict, user: dict, file_id: str, kind: str) -> None:
@@ -643,7 +657,46 @@ async def _handle_user_message(chat_id: int, msg: dict, user: dict) -> None:
         return
 
 
+async def _handle_callback_query(cq: dict) -> None:
+    """Admin taps an inline button under a notification — currently only the
+    "open a chat with the form-submitter" action. Replies in the admin's chat
+    with a tg:// deep-link the admin can tap."""
+    cq_id = cq.get("id") or ""
+    from_user = cq.get("from", {})
+    admin_chat_id = from_user.get("id")
+    data = (cq.get("data") or "").strip()
+
+    if admin_chat_id is None or str(admin_chat_id) not in ADMIN_CHAT_IDS:
+        await tg_answer_callback_query(cq_id, "Ruxsat yo‘q")
+        return
+
+    if data.startswith("chat:"):
+        raw_id = data[len("chat:"):]
+        try:
+            target_id = int(raw_id)
+        except ValueError:
+            await tg_answer_callback_query(cq_id, "Noto‘g‘ri ma’lumot")
+            return
+        # Inline tg:// links in HTML message body work better than in
+        # button URLs (button URLs are whitelisted, message HTML is not).
+        await tg_send_message(
+            admin_chat_id,
+            f"👤 <a href=\"tg://user?id={target_id}\">Foydalanuvchi bilan suhbat ochish</a>\n"
+            f"<code>id: {target_id}</code>",
+        )
+        await tg_answer_callback_query(cq_id)
+        return
+
+    # Unknown callback — clear the spinner silently.
+    await tg_answer_callback_query(cq_id)
+
+
 async def handle_update(update: dict) -> None:
+    cq = update.get("callback_query")
+    if cq:
+        await _handle_callback_query(cq)
+        return
+
     msg = update.get("message") or update.get("edited_message")
     if not msg:
         return
@@ -745,7 +798,7 @@ async def poll_telegram_updates(stop_event: asyncio.Event) -> None:
                     params={
                         "offset": offset,
                         "timeout": 25,
-                        "allowed_updates": json.dumps(["message", "edited_message"]),
+                        "allowed_updates": json.dumps(["message", "edited_message", "callback_query"]),
                     },
                 )
                 data = r.json()
