@@ -237,7 +237,7 @@ async def forward_visa_application(state: dict, user: dict, file_id: str, kind: 
         f"<b>Viza:</b> {_h(state['visa_title'])}"
         + (f" (${state['visa_price']})" if state.get("visa_price") else ""),
         f"<b>Ism:</b> {_h(state['name'])}",
-        f"<b>Telegram:</b> {_h(handle)} <code>(id: {user.get('id')})</code>",
+        f"<b>Telegram:</b> {_h(handle)} (<a href=\"tg://user?id={user.get('id')}\">id: {user.get('id')}</a>)",
     ]
     caption = "\n".join(caption_lines)
     for admin_id in ADMIN_CHAT_IDS:
@@ -869,7 +869,7 @@ async def submit_transfer_order(order: TransferOrderIn):
         "",
         f"<b>Ism:</b> {_h(order.name.strip())}",
         f"<b>Telefon:</b> {_h(order.phone.strip())}",
-        f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>",
+        f"<b>Telegram:</b> {_h(handle)} (<a href=\"tg://user?id={tg_id}\">id: {tg_id}</a>)",
     ])
 
     if order.comment.strip():
@@ -930,7 +930,7 @@ async def submit_hotel_order(order: HotelOrderIn):
     lines += [
         "",
         f"<b>Telefon:</b> {_h(order.phone.strip())}",
-        f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>",
+        f"<b>Telegram:</b> {_h(handle)} (<a href=\"tg://user?id={tg_id}\">id: {tg_id}</a>)",
     ]
 
     if order.comment.strip():
@@ -1039,13 +1039,13 @@ async def submit_lead(lead: LeadIn):
     safe_pkg = (lead.package_title or "").strip()
 
     lines = [
-        "🔔 <b>Yangi so‘rov · Mini App</b>",
+        "🕋 <b>Yangi Umra paket so‘rovi</b>",
         "",
         f"<b>Ism:</b> {_h(safe_name)}",
     ]
     if safe_pkg:
         lines.append(f"<b>Paket:</b> {_h(safe_pkg)}")
-    lines.append(f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>")
+    lines.append(f"<b>Telegram:</b> {_h(handle)} (<a href=\"tg://user?id={tg_id}\">id: {tg_id}</a>)")
     if safe_question:
         lines += ["", "<b>Savol:</b>", _h(safe_question)]
 
