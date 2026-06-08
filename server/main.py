@@ -181,48 +181,85 @@ def verify_init_data(init_data: str, bot_token: str) -> Optional[dict]:
 API_BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 
-async def tg_send_message(chat_id: str | int, text: str, *, parse_mode: str = "HTML") -> dict:
+async def tg_send_message(
+    chat_id: str | int,
+    text: str,
+    *,
+    parse_mode: str = "HTML",
+    reply_markup: Optional[dict] = None,
+) -> dict:
+    body: dict[str, Any] = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": parse_mode,
+        "disable_web_page_preview": True,
+    }
+    if reply_markup is not None:
+        body["reply_markup"] = reply_markup
     async with httpx.AsyncClient(timeout=15) as client:
-        r = await client.post(f"{API_BASE}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": parse_mode,
-            "disable_web_page_preview": True,
-        })
+        r = await client.post(f"{API_BASE}/sendMessage", json=body)
         if r.status_code != 200:
             log.warning("sendMessage failed: %s %s", r.status_code, r.text[:200])
         return r.json()
 
 
-async def tg_send_photo(chat_id: str | int, file_id: str, caption: str) -> dict:
+async def tg_send_photo(
+    chat_id: str | int, file_id: str, caption: str,
+    *, reply_markup: Optional[dict] = None,
+) -> dict:
+    body: dict[str, Any] = {
+        "chat_id": chat_id,
+        "photo": file_id,
+        "caption": caption,
+        "parse_mode": "HTML",
+    }
+    if reply_markup is not None:
+        body["reply_markup"] = reply_markup
     async with httpx.AsyncClient(timeout=20) as client:
-        r = await client.post(f"{API_BASE}/sendPhoto", json={
-            "chat_id": chat_id,
-            "photo": file_id,
-            "caption": caption,
-            "parse_mode": "HTML",
-        })
+        r = await client.post(f"{API_BASE}/sendPhoto", json=body)
         if r.status_code != 200:
             log.warning("sendPhoto failed: %s %s", r.status_code, r.text[:200])
         return r.json()
 
 
-async def tg_send_document(chat_id: str | int, file_id: str, caption: str) -> dict:
+async def tg_send_document(
+    chat_id: str | int, file_id: str, caption: str,
+    *, reply_markup: Optional[dict] = None,
+) -> dict:
+    body: dict[str, Any] = {
+        "chat_id": chat_id,
+        "document": file_id,
+        "caption": caption,
+        "parse_mode": "HTML",
+    }
+    if reply_markup is not None:
+        body["reply_markup"] = reply_markup
     async with httpx.AsyncClient(timeout=20) as client:
-        r = await client.post(f"{API_BASE}/sendDocument", json={
-            "chat_id": chat_id,
-            "document": file_id,
-            "caption": caption,
-            "parse_mode": "HTML",
-        })
+        r = await client.post(f"{API_BASE}/sendDocument", json=body)
         if r.status_code != 200:
             log.warning("sendDocument failed: %s %s", r.status_code, r.text[:200])
         return r.json()
 
 
-async def send_to_admins(text: str) -> None:
+async def send_to_admins(text: str, *, reply_markup: Optional[dict] = None) -> None:
     for chat_id in ADMIN_CHAT_IDS:
-        await tg_send_message(chat_id, text)
+        await tg_send_message(chat_id, text, reply_markup=reply_markup)
+
+
+def _user_chat_markup(user_id: int | str) -> dict:
+    """Inline keyboard with one button that opens a private chat with the user.
+
+    Telegram silently strips inline mentions (`<a href="tg://user?id=N">`) when
+    the bot has never interacted with the target user — which is exactly the
+    case for everyone who filled a Mini App form without messaging the bot.
+    A button with the same URL is treated more permissively by Telegram clients
+    and opens the chat in practice.
+    """
+    return {
+        "inline_keyboard": [[
+            {"text": "💬 Foydalanuvchi bilan suhbat", "url": f"tg://user?id={user_id}"}
+        ]]
+    }
 
 
 async def forward_visa_application(state: dict, user: dict, file_id: str, kind: str) -> None:
@@ -237,14 +274,15 @@ async def forward_visa_application(state: dict, user: dict, file_id: str, kind: 
         f"<b>Viza:</b> {_h(state['visa_title'])}"
         + (f" (${state['visa_price']})" if state.get("visa_price") else ""),
         f"<b>Ism:</b> {_h(state['name'])}",
-        f"<b>Telegram:</b> {_h(handle)} (<a href=\"tg://user?id={user.get('id')}\">id: {user.get('id')}</a>)",
+        f"<b>Telegram:</b> {_h(handle)} <code>(id: {user.get('id')})</code>",
     ]
     caption = "\n".join(caption_lines)
+    markup = _user_chat_markup(user.get("id")) if user.get("id") else None
     for admin_id in ADMIN_CHAT_IDS:
         if kind == "photo":
-            await tg_send_photo(admin_id, file_id, caption)
+            await tg_send_photo(admin_id, file_id, caption, reply_markup=markup)
         else:
-            await tg_send_document(admin_id, file_id, caption)
+            await tg_send_document(admin_id, file_id, caption, reply_markup=markup)
 
 
 # ====================  Bot identity (auto-fetched)  ====================
@@ -869,14 +907,14 @@ async def submit_transfer_order(order: TransferOrderIn):
         "",
         f"<b>Ism:</b> {_h(order.name.strip())}",
         f"<b>Telefon:</b> {_h(order.phone.strip())}",
-        f"<b>Telegram:</b> {_h(handle)} (<a href=\"tg://user?id={tg_id}\">id: {tg_id}</a>)",
+        f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>",
     ])
 
     if order.comment.strip():
         lines += ["", "<b>Izoh:</b>", _h(order.comment.strip())]
 
     try:
-        await send_to_admins("\n".join(lines))
+        await send_to_admins("\n".join(lines), reply_markup=_user_chat_markup(tg_id))
     except httpx.HTTPError as e:
         log.exception("Telegram API error")
         raise HTTPException(status_code=502, detail="Telegram'ga jo‘natishda xatolik") from e
@@ -930,14 +968,14 @@ async def submit_hotel_order(order: HotelOrderIn):
     lines += [
         "",
         f"<b>Telefon:</b> {_h(order.phone.strip())}",
-        f"<b>Telegram:</b> {_h(handle)} (<a href=\"tg://user?id={tg_id}\">id: {tg_id}</a>)",
+        f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>",
     ]
 
     if order.comment.strip():
         lines += ["", "<b>Izoh:</b>", _h(order.comment.strip())]
 
     try:
-        await send_to_admins("\n".join(lines))
+        await send_to_admins("\n".join(lines), reply_markup=_user_chat_markup(tg_id))
     except httpx.HTTPError as e:
         log.exception("Telegram API error")
         raise HTTPException(status_code=502, detail="Telegram'ga jo‘natishda xatolik") from e
@@ -1045,12 +1083,12 @@ async def submit_lead(lead: LeadIn):
     ]
     if safe_pkg:
         lines.append(f"<b>Paket:</b> {_h(safe_pkg)}")
-    lines.append(f"<b>Telegram:</b> {_h(handle)} (<a href=\"tg://user?id={tg_id}\">id: {tg_id}</a>)")
+    lines.append(f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>")
     if safe_question:
         lines += ["", "<b>Savol:</b>", _h(safe_question)]
 
     try:
-        await send_to_admins("\n".join(lines))
+        await send_to_admins("\n".join(lines), reply_markup=_user_chat_markup(tg_id))
     except httpx.HTTPError as e:
         log.exception("Telegram API error")
         raise HTTPException(status_code=502, detail="Telegram'ga jo‘natishda xatolik") from e
