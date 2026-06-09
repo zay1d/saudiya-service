@@ -250,16 +250,15 @@ def _user_chat_markup(user_id: int | str) -> dict:
     """Inline keyboard with one button that lets the admin open a private
     chat with the form-submitter.
 
-    `tg://user?id=N` is not accepted in InlineKeyboardButton.url (Telegram
-    rejects the message with BUTTON_URL_INVALID), so we use a callback_data
-    button. When the admin taps it, `_handle_chat_callback` replies in the
-    admin's own chat with an inline `<a href="tg://user?id=N">…</a>` link,
-    which IS allowed in HTML message bodies and opens the chat in clients
-    that can resolve the user.
+    Uses the `https://t.me/@id<N>` form (https:// is whitelisted for button
+    URLs, unlike `tg://user`). Telegram clients that resolve the `@id<N>`
+    short-link will open the chat directly; clients that don't will show a
+    "user not found" alert, but in either case the notification message
+    itself is delivered (no BUTTON_URL_INVALID rejection).
     """
     return {
         "inline_keyboard": [[
-            {"text": "💬 Foydalanuvchi bilan suhbat", "callback_data": f"chat:{user_id}"}
+            {"text": "💬 Foydalanuvchi bilan suhbat", "url": f"https://t.me/@id{user_id}"}
         ]]
     }
 
