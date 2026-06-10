@@ -1182,6 +1182,12 @@
                  autocomplete="given-name" placeholder="Familiya Ism" />
           <div class="err">Iltimos, ismingizni kiriting</div>
         </div>
+        <div class="field" data-field="phone">
+          <label for="lead-phone">Telefon raqam</label>
+          <input id="lead-phone" name="phone" type="tel" maxlength="20" required
+                 autocomplete="tel" inputmode="tel" placeholder="+998 __ ___ __ __" />
+          <div class="err">Telefon raqamingizni to‘liq kiriting</div>
+        </div>
         <div class="field" data-field="question">
           <label for="lead-question">Qo‘shimcha savol (ixtiyoriy)</label>
           <textarea id="lead-question" name="question" maxlength="2000"
@@ -1194,6 +1200,7 @@
       </form>
     `;
     const form = modalInner.querySelector("#lead-form");
+    bindPhoneMask(form.querySelector('input[name="phone"]'));
     form.addEventListener("submit", (ev) => {
       ev.preventDefault();
       submitLead(item, form);
@@ -1218,17 +1225,23 @@
 
   async function submitLead(item, form) {
     const nameField = form.querySelector('[data-field="name"]');
+    const phoneField = form.querySelector('[data-field="phone"]');
     const nameInput = form.querySelector('input[name="name"]');
+    const phoneInput = form.querySelector('input[name="phone"]');
     const questionInput = form.querySelector('textarea[name="question"]');
     const submitBtn = form.querySelector('[data-role="submit"]');
 
     const name = (nameInput.value || "").trim();
+    const phone = (phoneInput.value || "").trim();
     const question = (questionInput.value || "").trim();
 
     nameField.classList.remove("invalid");
-    if (!name) {
-      nameField.classList.add("invalid");
-      nameInput.focus();
+    phoneField.classList.remove("invalid");
+    let ok = true;
+    if (!name) { nameField.classList.add("invalid"); ok = false; }
+    if (phone.replace(/\D/g, "").length < 12) { phoneField.classList.add("invalid"); ok = false; }
+    if (!ok) {
+      (!name ? nameInput : phoneInput).focus();
       return;
     }
 
@@ -1243,6 +1256,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
+          phone,
           question,
           package_id: item.__leadId,
           package_title: item.__leadTitle,

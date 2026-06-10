@@ -326,6 +326,7 @@ async def fetch_bot_identity() -> None:
 
 class LeadIn(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
+    phone: str = Field(..., min_length=6, max_length=30)
     question: str = Field(default="", max_length=2000)
     package_id: str = Field(default="", max_length=50)
     package_title: str = Field(default="", max_length=100)
@@ -1125,6 +1126,7 @@ async def submit_lead(lead: LeadIn):
     )
 
     safe_name = (lead.name or "").strip()
+    safe_phone = (lead.phone or "").strip()
     safe_question = (lead.question or "").strip()
     safe_pkg = (lead.package_title or "").strip()
 
@@ -1135,6 +1137,7 @@ async def submit_lead(lead: LeadIn):
     ]
     if safe_pkg:
         lines.append(f"<b>Paket:</b> {_h(safe_pkg)}")
+    lines.append(f"<b>Telefon:</b> {_h(safe_phone)}")
     lines.append(f"<b>Telegram:</b> {_h(handle)} <code>(id: {tg_id})</code>")
     if safe_question:
         lines += ["", "<b>Savol:</b>", _h(safe_question)]
