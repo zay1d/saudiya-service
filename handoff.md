@@ -104,6 +104,12 @@ but unnecessary.
 `ADMIN_CHAT_ID`. Owner edits via `nano` on the VPS.
 
 `/opt/saudia-service/content.json` is also not in git. Seeded from
+`server/content.default.json` on first boot; admin then edits visa prices via
+bot commands. If you add new keys to `content.default.json`, run the merge
+snippet in `CLAUDE.md` § 7 to backfill the live file.
+
+---
+
 ## 3. Bot migration — DONE (2026-09-04)
 
 The backend runs on `@Saudiaservice_bot`'s token on the rebuilt server.
@@ -122,12 +128,6 @@ the bot can DM the owner (so `/start` was pressed).
 
 The backend auto-fetches the bot username via `getMe` at startup, so the
 visa deep-link `t.me/<bot>?start=visa_<id>` needs no config.
-4. `systemctl restart saudia-bot && sleep 2 && curl https://saudihizmat.fyi/api/health`.
-5. Press `/start` to `@Saudiaservice_bot` so the admin chat is unblocked.
-6. `/revoke` the old leaked token in BotFather.
-
-The backend auto-fetches the bot username via `getMe` at startup, so the
-visa deep-link `t.me/<bot>?start=visa_<id>` updates itself after restart.
 
 ---
 
