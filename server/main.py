@@ -43,6 +43,9 @@ CONTENT_PATH = BASE_DIR / "content.json"
 CONTENT_DEFAULT_PATH = BASE_DIR / "server" / "content.default.json"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+# httpx logs every request URL at INFO, and Telegram puts the bot token in
+# the URL path, so left alone it writes the token to the log on every poll.
+logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("saudia")
 
 
