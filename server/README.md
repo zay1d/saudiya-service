@@ -6,44 +6,72 @@ Tiny FastAPI service that:
 - verifies the Telegram WebApp `initData` HMAC signature (anti-spam)
 - forwards a formatted notification to the admin chat(s) via Bot API
 
-## Deploy (Contabo, Ubuntu/Debian)
+## Deploy on a fresh server (Ubuntu/Debian, as root)
 
-Run **once** as root:
+**Before you start:** point the domain's DNS at the new machine — at the
+registrar (Porkbun) set both A records to the new IP:
+
+| Type | Host  | Value        |
+|------|-------|--------------|
+| A    | `@`   | `<NEW_IP>`   |
+| A    | `www` | `<NEW_IP>`   |
+
+Certbot validates over HTTP, so it can only issue the cert once DNS actually
+resolves to this server. Check with `getent hosts saudihizmat.fyi`.
+
+Then run **once** as root:
 
 ```bash
 # 1. Clone the repo
-git clone -b claude/telegram-mini-app-U5ytG https://github.com/zay1d/saudiya-service.git /opt/saudia-service
+apt-get update -qq && apt-get install -y git
+git clone -b claude/telegram-mini-app-U5ytG \
+  https://github.com/zay1d/saudiya-service.git /opt/saudia-service
 cd /opt/saudia-service
 
 # 2. Create .env from the template, fill in BOT_TOKEN + ADMIN_CHAT_ID
 cp server/.env.example .env
 nano .env
 
-# 3. Run the bootstrap (installs nginx, certbot, python venv, systemd unit,
-#    fetches Let's Encrypt cert for 167-86-125-229.nip.io, starts the service)
+# 3. Bootstrap: system packages, python venv, 'saudia' service account,
+#    systemd unit, nginx site, Let's Encrypt cert for the apex + www.
+#    Defaults to saudihizmat.fyi; pass another domain as the first argument.
 bash server/install.sh
 ```
 
-Then verify:
+Verify:
 
 ```bash
-curl https://167-86-125-229.nip.io/api/health
+curl https://saudihizmat.fyi/api/health
 # → {"ok":true,"admins":1}
+systemctl show saudia-bot -p MainPID --value | xargs -I{} ps -o user= -p {}
+# → saudia   (not root)
 ```
+
+### What does NOT survive a server rebuild
+
+These live only on the VPS and are gitignored, so a fresh box starts clean:
+
+- `.env` — recreate from `server/.env.example` (BOT_TOKEN, ADMIN_CHAT_ID)
+- `content.json` — re-seeded from `server/content.default.json` on first boot,
+  so any visa prices the admin changed via `/setprice` are back to defaults.
+  Re-apply them with `/setprice <visa_id> <price>` in the bot.
+- `tracks.json` — usage stats reset to zero; `/stats` starts counting again
+- Let's Encrypt certs — reissued by `install.sh`
 
 ## Update
 
-After `git push` to the branch (or merge to `main`):
+After `git push` to the branch:
 
 ```bash
-ssh root@167.86.125.229 'bash /opt/saudia-service/server/update.sh'
+ssh root@<SERVER_IP> 'bash /opt/saudia-service/server/update.sh'
 ```
 
 ## Hardening: run as non-root (one-time migration)
 
 The service runs as the unprivileged `saudia` user, not root. A fresh
-`install.sh` sets this up automatically. To migrate an **existing** install
-that's still running as root, run once as root on the VPS:
+`install.sh` does all of this automatically, so this section only applies
+when migrating an **existing** install that still runs as root. Once, as
+root on the VPS:
 
 ```bash
 cd /opt/saudia-service
@@ -84,13 +112,14 @@ systemctl status saudia-bot                  # is it alive?
 nginx -t                                     # nginx config sanity check
 ```
 
-## Switching to a real domain later
+## Changing the domain
 
-When you buy e.g. `saudia.uz`:
+The domain is hardcoded in two places:
 
-1. Point its DNS A record to `167.86.125.229`.
-2. On the VPS, edit `server/nginx.conf` — replace `167-86-125-229.nip.io` with
-   `saudia.uz` (3 places). Commit + push.
-3. `bash /opt/saudia-service/server/update.sh`
-4. `certbot --nginx -d saudia.uz` to issue a fresh cert.
-5. In `data.js` change `API_URL` to `https://saudia.uz/api`. Push — Pages auto-deploys.
+1. `server/nginx.conf` — `server_name` (3 blocks) and the two
+   `ssl_certificate*` paths under `/etc/letsencrypt/live/<domain>/`.
+2. `data.js` — the `API_URL` host check, so the Mini App calls `/api` on the
+   same origin instead of falling back to the absolute production URL.
+
+Edit both, commit, push, then on the VPS run
+`bash server/install.sh <new-domain>` to reissue the cert and reload nginx.
