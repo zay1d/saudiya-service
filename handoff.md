@@ -9,8 +9,8 @@ this file is the short version: latest state, what just landed, what's open.
 
 Telegram Mini App for an umra/hajj travel agency in Uzbekistan, served from a
 single Contabo VPS at https://saudihizmat.fyi. All five categories are
-functionally complete. Bot is mid-migration from the old `8897203944…` token
-to `@Saudiaservice_bot`.
+functionally complete and live on `@Saudiaservice_bot`. Rebuilt on a fresh
+VPS (`62.169.26.149`) on 2026-09-04.
 
 - **Repo:** https://github.com/zay1d/saudiya-service
 - **Branch:** `claude/telegram-mini-app-U5ytG` (everything lives here; no main merge yet)
@@ -23,6 +23,12 @@ to `@Saudiaservice_bot`.
 ## 1. What landed in the last burst of work
 
 (Reverse-chronological, last ~30 commits.)
+
+-3. **Rebuilt on a fresh VPS (`62.169.26.149`), 2026-09-04.** Old box was
+    destroyed. `install.sh` now works from scratch (domain param, apex+www
+    cert, DNS sanity check). SSH is key-only (`/etc/ssh/sshd_config.d/00-hardening.conf`),
+    service runs as `saudia`. Bot migration to `@Saudiaservice_bot` completed
+    as part of this. `content.json` and `tracks.json` reset — see § 3.
 
 -2. **Admin broadcast — `/broadcast`.** Two-step admin command: send
     `/broadcast`, then send the message to broadcast (text/photo/file/video).
@@ -98,29 +104,24 @@ but unnecessary.
 `ADMIN_CHAT_ID`. Owner edits via `nano` on the VPS.
 
 `/opt/saudia-service/content.json` is also not in git. Seeded from
-`server/content.default.json` on first boot; admin then edits visa prices via
-bot commands. If you add new keys to `content.default.json`, run the merge
-snippet in `CLAUDE.md` § 7 to backfill the live file.
+## 3. Bot migration — DONE (2026-09-04)
 
----
+The backend runs on `@Saudiaservice_bot`'s token on the rebuilt server.
+Verified: `getMe` → `@Saudiaservice_bot`, polling started, no 401/409, and
+the bot can DM the owner (so `/start` was pressed).
 
-## 3. Bot migration — current state
+**Still on the owner:**
+1. **Rotate the bot token.** It was pasted into the chat on 2026-09-04
+   (the old `8897203944…` one leaked earlier too). BotFather → `/revoke`
+   → new token → `nano /opt/saudia-service/.env` → `systemctl restart saudia-bot`.
+   Do it on the server, never paste the new one into chat.
+2. **Re-apply visa prices.** `content.json` was reseeded from defaults on
+   the fresh box; whatever the admin had set via `/setprice` is gone.
+   `/prices` to see current, `/setprice <id> <usd>` to fix.
+3. `/stats` starts from zero — `tracks.json` did not survive the rebuild.
 
-Owner is mid-switch from the old saudia bot (token `8897203944…`, **leaked
-in chat early on**) to the new `@Saudiaservice_bot`.
-
-**Done:**
-- New bot exists in BotFather.
-- Main Mini App configured (`/newapp` → URL `https://saudihizmat.fyi`,
-  short name `app` → ссылка `t.me/Saudiaservice_bot/app`).
-- Menu button (left of input) configured.
-- Owner confirmed the new bot opens the app full-screen via profile button.
-
-**Pending on the owner side (instructions already given):**
-1. Stop any old code that polls the new bot's token (to avoid 409 conflict).
-2. `curl "https://api.telegram.org/bot<NEW_TOKEN>/deleteWebhook?drop_pending_updates=true"`.
-3. `nano /opt/saudia-service/.env` → replace `BOT_TOKEN=` with the new token.
-   `ADMIN_CHAT_ID=6136579036` stays.
+The backend auto-fetches the bot username via `getMe` at startup, so the
+visa deep-link `t.me/<bot>?start=visa_<id>` needs no config.
 4. `systemctl restart saudia-bot && sleep 2 && curl https://saudihizmat.fyi/api/health`.
 5. Press `/start` to `@Saudiaservice_bot` so the admin chat is unblocked.
 6. `/revoke` the old leaked token in BotFather.

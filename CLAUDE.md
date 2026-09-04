@@ -29,7 +29,7 @@ the repo so the next session has the same picture.
 | Env file | `/opt/saudia-service/.env` (chmod 600, **gitignored**, never put in repo) |
 | Content store | `/opt/saudia-service/content.json` (live visa/transfer data, **gitignored**) — seeded from `server/content.default.json` on first boot |
 | Usage stats   | `/opt/saudia-service/tracks.json` (daily-aggregate counts, **gitignored**) — auto-created on first event |
-| Telegram bot | **migrating** from old saudia bot (token `8897203944…`, leaked in chat) to `@Saudiaservice_bot`. After migration: rotate the old one via `/revoke` |
+| Telegram bot | `@Saudiaservice_bot` — live. Its token was pasted into chat on 2026-09-04 (the old `8897203944…` leaked earlier too): **rotate via BotFather `/revoke`**, then update `.env` on the VPS — never paste the new one into chat |
 | Admin chat | configured in `.env` as `ADMIN_CHAT_ID` (comma-separated for multiple admins). Owner's chat id: `6136579036` |
 | Bot polling | long-polling started in FastAPI `lifespan`, not webhook |
 | Mini App surfaces | Main Mini App (`t.me/<bot>/app`) + menu button + profile button. Code calls `requestFullscreen()` (Bot API 8.0+) so all three render full-screen |
@@ -580,15 +580,11 @@ When a new big flow is proposed, suggest a codeword and don't implement until us
 
 **Immediate / high-priority**
 
-- **Finish bot migration to `@Saudiaservice_bot`** — owner created the new bot,
-  set up Main Mini App via `/newapp` (URL `https://saudihizmat.fyi`), and set
-  the menu button. Still pending on the owner side: stop any old code that
-  polls the new bot's token (avoid 409), update `BOT_TOKEN` in `/opt/saudia-service/.env`,
-  run `deleteWebhook?drop_pending_updates=true`, restart `saudia-bot`, press `/start`
-  on the new bot so the admin chat is unblocked, then `/revoke` the leaked old token
-  (`8897203944…`) in BotFather.
-- **VPS root password rotation** — still pending; was shared in chat. Move
-  to key-only SSH (`PasswordAuthentication no`) when rotating.
+- **Rotate the bot token.** `@Saudiaservice_bot`'s token was pasted into
+  chat on 2026-09-04. BotFather → `/revoke` → put the new one in
+  `/opt/saudia-service/.env` on the VPS → `systemctl restart saudia-bot`.
+- **Re-apply visa prices** via `/setprice` — `content.json` was reseeded
+  from defaults on the 2026-09-04 rebuild.
 - **Security audit** — owner installed the `secure-coding-trio` skill in
   `~/.claude/skills/`. In the next fresh session ask for a full audit using
   the Security-reviewer role (see `handoff.md` § "Security audit pending").
