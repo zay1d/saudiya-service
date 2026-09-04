@@ -159,8 +159,11 @@ the Security-reviewer role.
 - 🟢 **L1 — Server-side phone format not validated** (Pydantic just enforces
   length). Output is escaped via `_h()` so no XSS risk, but a regex would be
   cleaner.
-- 🟢 **L2 — Logs may leak user PII or pieces of the token.** `r.text[:200]`
-  on Telegram API failures could include user input. Sanitize.
+- ✅ **L2 — token in logs: FIXED 2026-09-04 (`72c4517`).** It was worse than
+  first described: httpx logged every request URL at INFO, and Telegram
+  puts the token in the URL path, so the full token hit the log every 25 s.
+  httpx logger is now at WARNING and the old log was wiped. Still open,
+  minor: `r.text[:200]` on Telegram API failures could echo user input.
 
 The audit was cut off mid-write; ask the new session to redo it fully via
 the skill.
