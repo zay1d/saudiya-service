@@ -5,7 +5,9 @@
 set -euo pipefail
 
 APP_DIR="/opt/saudia-service"
-DOMAIN="167-86-125-229.nip.io"
+# Domain to serve + request the TLS cert for. Override as `bash install.sh other.tld`
+# or `DOMAIN=other.tld bash install.sh`. The www.<domain> host is always included.
+DOMAIN="${1:-${DOMAIN:-saudihizmat.fyi}}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-admin@${DOMAIN}}"
 
 echo "==> 1/7  Installing system packages"
@@ -66,8 +68,10 @@ systemctl daemon-reload
 systemctl enable saudia-bot
 systemctl restart saudia-bot
 
-echo "==> 6/7  Nginx site"
+echo "==> 6/7  Nginx site for ${DOMAIN}"
 mkdir -p /var/www/certbot
+# Ubuntu ships a default site that also listens on :80 and would shadow ours.
+rm -f /etc/nginx/sites-enabled/default
 install -m 644 server/nginx.conf /etc/nginx/sites-available/saudia-bot
 ln -sf /etc/nginx/sites-available/saudia-bot /etc/nginx/sites-enabled/saudia-bot
 
@@ -75,17 +79,30 @@ ln -sf /etc/nginx/sites-available/saudia-bot /etc/nginx/sites-enabled/saudia-bot
 # so Certbot can answer the ACME challenge.
 if [[ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]]; then
   echo "==> 6.1  TLS cert missing — provisioning via Certbot"
+
+  # Certbot can only validate if DNS already points at this machine. On a
+  # rebuilt server that often means the A record still holds the old IP.
+  RESOLVED="$(getent hosts "${DOMAIN}" | awk '{print $1}' | head -1 || true)"
+  MYIP="$(curl -fsS --max-time 5 ifconfig.me || true)"
+  if [[ -n "$RESOLVED" && -n "$MYIP" && "$RESOLVED" != "$MYIP" ]]; then
+    echo "WARN: ${DOMAIN} resolves to ${RESOLVED}, but this server is ${MYIP}."
+    echo "      Update the A records (@ and www) at the registrar and wait for"
+    echo "      propagation, otherwise Certbot will fail. Continuing in 10s."
+    sleep 10
+  fi
+
   cat > /etc/nginx/sites-available/saudia-bot <<EOF
 server {
     listen 80;
-    server_name ${DOMAIN};
+    server_name ${DOMAIN} www.${DOMAIN};
     location /.well-known/acme-challenge/ { root /var/www/certbot; }
     location / { return 200 'pending tls'; add_header Content-Type text/plain; }
 }
 EOF
   nginx -t && systemctl reload nginx
+  # nginx.conf serves both hosts off the ${DOMAIN} cert dir, so www must be a SAN.
   certbot certonly --webroot -w /var/www/certbot --non-interactive --agree-tos \
-    -m "${CERTBOT_EMAIL}" -d "${DOMAIN}"
+    -m "${CERTBOT_EMAIL}" -d "${DOMAIN}" -d "www.${DOMAIN}"
   # Restore the full HTTPS config now that the cert exists.
   install -m 644 server/nginx.conf /etc/nginx/sites-available/saudia-bot
 fi
