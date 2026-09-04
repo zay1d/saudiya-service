@@ -16,9 +16,9 @@ the repo so the next session has the same picture.
 |---|---|
 | Public URL | https://saudihizmat.fyi (also `www.` redirects to apex) |
 | Registrar | Porkbun |
-| DNS | A `@` → `167.86.125.229`, A `www` → `167.86.125.229` |
-| VPS | Contabo, IP `167.86.125.229`, Ubuntu 24.04, root user |
-| SSH | `ssh root@167.86.125.229` (key auth configured) |
+| DNS | A `@` → `<SERVER_IP>`, A `www` → `<SERVER_IP>` (Porkbun) |
+| VPS | ⚠️ the original Contabo box (`167.86.125.229`) was **destroyed**. Redeployed on a new server — fill in the IP here once it's known. Ubuntu, root user |
+| SSH | `ssh root@<SERVER_IP>` |
 | App dir | `/opt/saudia-service/` (mirrors repo root) |
 | Repo | https://github.com/zay1d/saudiya-service — **public**, owner `zay1d` |
 | Active branch | `claude/telegram-mini-app-U5ytG` (everything lands here, no merge to main yet) |
@@ -98,16 +98,25 @@ for Pages preview if ever needed.
     ├── content.default.json defaults for visas + transfers
     ├── nginx.conf          production nginx site config (apex + www + redirects)
     ├── saudia-bot.service  systemd unit
-    ├── install.sh          one-time bootstrap (only used historically with nip.io)
+    ├── install.sh          fresh-server bootstrap: packages, venv, `saudia`
+    │                        service account, systemd unit, nginx, Let's Encrypt
+    │                        cert for apex + www. `bash server/install.sh [domain]`
     ├── update.sh           `git pull && pip install -r + restart`
-    ├── migrate-domain.sh   one-time nip.io → real domain migration
+    ├── migrate-domain.sh   legacy one-time nip.io → real domain migration
     ├── .env.example        template
     └── README.md           deploy walkthrough
 ```
 
-After cloning, on a fresh VPS:
+After cloning, on a fresh VPS (see `server/README.md` for the full runbook):
+0. Point the Porkbun A records (`@` and `www`) at the new IP first — Certbot
+   validates over HTTP and will fail while DNS still holds the old address.
 1. `cp server/.env.example .env`, fill `BOT_TOKEN` and `ADMIN_CHAT_ID`
-2. `bash server/install.sh` (or `migrate-domain.sh saudihizmat.fyi` for the domain)
+2. `bash server/install.sh` — defaults to `saudihizmat.fyi`, pass another
+   domain as the first argument to override.
+
+Nothing outside git survives a rebuild: `.env`, `content.json` (admin's price
+edits revert to `content.default.json`), `tracks.json` (stats reset to zero)
+and the TLS certs are all recreated from scratch.
 
 ---
 
@@ -439,7 +448,7 @@ Events emitted by the frontend (`track()` in `app.js`):
 ### After a `git push`
 
 ```bash
-ssh root@167.86.125.229 'bash /opt/saudia-service/server/update.sh'
+ssh root@<SERVER_IP> 'bash /opt/saudia-service/server/update.sh'
 ```
 
 The script does: `git pull`, `pip install -r server/requirements.txt`, `systemctl restart saudia-bot`,
