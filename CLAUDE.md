@@ -16,9 +16,9 @@ the repo so the next session has the same picture.
 |---|---|
 | Public URL | https://saudihizmat.fyi (also `www.` redirects to apex) |
 | Registrar | Porkbun |
-| DNS | A `@` → `<SERVER_IP>`, A `www` → `<SERVER_IP>` (Porkbun) |
-| VPS | ⚠️ the original Contabo box (`167.86.125.229`) was **destroyed**. Redeployed on a new server — fill in the IP here once it's known. Ubuntu, root user |
-| SSH | `ssh root@<SERVER_IP>` |
+| DNS | A `@` → `62.169.26.149`, A `www` → `62.169.26.149` (Porkbun) |
+| VPS | Contabo, IP `62.169.26.149`, Ubuntu 24.04, root user, key-only SSH. (Original box `167.86.125.229` was destroyed in Sep 2026 and the app redeployed from scratch.) |
+| SSH | `ssh root@62.169.26.149` |
 | App dir | `/opt/saudia-service/` (mirrors repo root) |
 | Repo | https://github.com/zay1d/saudiya-service — **public**, owner `zay1d` |
 | Active branch | `claude/telegram-mini-app-U5ytG` (everything lands here, no merge to main yet) |
@@ -448,7 +448,7 @@ Events emitted by the frontend (`track()` in `app.js`):
 ### After a `git push`
 
 ```bash
-ssh root@<SERVER_IP> 'bash /opt/saudia-service/server/update.sh'
+ssh root@62.169.26.149 'bash /opt/saudia-service/server/update.sh'
 ```
 
 The script does: `git pull`, `pip install -r server/requirements.txt`, `systemctl restart saudia-bot`,

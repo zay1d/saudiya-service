@@ -83,7 +83,7 @@ if [[ ! -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]]; then
   # Certbot can only validate if DNS already points at this machine. On a
   # rebuilt server that often means the A record still holds the old IP.
   RESOLVED="$(getent hosts "${DOMAIN}" | awk '{print $1}' | head -1 || true)"
-  MYIP="$(curl -fsS --max-time 5 ifconfig.me || true)"
+  MYIP="$(curl -4 -fsS --max-time 5 ifconfig.me || true)"
   if [[ -n "$RESOLVED" && -n "$MYIP" && "$RESOLVED" != "$MYIP" ]]; then
     echo "WARN: ${DOMAIN} resolves to ${RESOLVED}, but this server is ${MYIP}."
     echo "      Update the A records (@ and www) at the registrar and wait for"

@@ -15,8 +15,8 @@ to `@Saudiaservice_bot`.
 - **Repo:** https://github.com/zay1d/saudiya-service
 - **Branch:** `claude/telegram-mini-app-U5ytG` (everything lives here; no main merge yet)
 - **Owner chat id:** `6136579036`
-- **VPS:** `ssh root@<SERVER_IP>` (original box was destroyed; redeployed fresh) → `/opt/saudia-service/`
-- **Deploy:** `ssh root@<SERVER_IP> 'bash /opt/saudia-service/server/update.sh'`
+- **VPS:** `ssh root@62.169.26.149` → `/opt/saudia-service/` (rebuilt from scratch Sep 2026; old box `167.86.125.229` is gone)
+- **Deploy:** `ssh root@62.169.26.149 'bash /opt/saudia-service/server/update.sh'`
 
 ---
 
@@ -87,7 +87,7 @@ to `@Saudiaservice_bot`.
 The VPS pulls from this branch. After every commit run:
 
 ```bash
-ssh root@<SERVER_IP> 'bash /opt/saudia-service/server/update.sh'
+ssh root@62.169.26.149 'bash /opt/saudia-service/server/update.sh'
 ```
 
 That does `git pull`, `pip install -r`, `systemctl restart saudia-bot`. For
