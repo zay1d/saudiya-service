@@ -18,6 +18,7 @@ the repo so the next session has the same picture.
 | Registrar | Porkbun |
 | DNS | A `@` → `62.169.26.149`, A `www` → `62.169.26.149` (Porkbun) |
 | VPS | Contabo, IP `62.169.26.149`, Ubuntu 24.04, root user, key-only SSH. (Original box `167.86.125.229` was destroyed in Sep 2026 and the app redeployed from scratch.) |
+| Co-tenant | The same VPS also hosts **Lokatsiyalar** (`/opt/lokatsiya-bot`, unit `lokatsiya-bot` as user `lokatsiya`, port 8080, nginx site `lokatsiya-bot` on `62-169-26-149.sslip.io`, repo `zay1d/lokatsiyabot`). Don't touch its nginx site, user or port when changing Saudia's, and a full server rebuild must restore both projects. |
 | SSH | `ssh root@62.169.26.149` |
 | App dir | `/opt/saudia-service/` (mirrors repo root) |
 | Repo | https://github.com/zay1d/saudiya-service — **public**, owner `zay1d` |
